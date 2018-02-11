@@ -17,8 +17,9 @@ namespace LiveTubeRec
         }
 
         private void buttonInsert_Click(object sender, EventArgs e)
-        {
-            dataGridView.Rows.Add("", textBoxChannelID.Text);
+        {            
+            int i = dataGridView.Rows.Add("", textBoxChannelID.Text);
+            setStatus(dataGridView.Rows[i]);
         }
 
 
@@ -36,23 +37,7 @@ namespace LiveTubeRec
         {
             foreach (var row in dataGridView.Rows.Cast<DataGridViewRow>())
             {
-                string liveID = requestLiveID(row.Cells["channelID"].Value.ToString());
-
-                if(!"".Equals(liveID))
-                {
-
-                    writeLog("debug : " + liveID);
-
-                    row.Cells["liveID"].Value = liveID;
-                    row.Cells["status"].Value = "配信中";
-                    row.Cells["liveURL"].Value = @"https://www.youtube.com/watch?v=" + liveID;
-                }
-                else
-                {
-                    row.Cells["liveID"].Value = "";
-                    row.Cells["status"].Value = "-";
-                    row.Cells["liveURL"].Value = "";
-                }
+                setStatus(row);
             }
         }
 
@@ -82,5 +67,51 @@ namespace LiveTubeRec
 
             return retLiveID;
         }
+
+        private void setStatus(DataGridViewRow row)
+        {
+            string liveID = requestLiveID(row.Cells["channelID"].Value.ToString());
+
+            if (!"".Equals(liveID))
+            {
+
+                writeLog("debug : " + liveID);
+
+                row.Cells["liveURL"].Value = @"https://www.youtube.com/watch?v=" + liveID;
+
+                if (!"配信中".Equals(row.Cells["status"].Value))
+                {
+                    System.Diagnostics.Process p = System.Diagnostics.Process.Start(@"youtubeDL\youtube-dl.exe", row.Cells["liveURL"].Value.ToString());
+                }
+
+                row.Cells["liveID"].Value = liveID;
+                row.Cells["status"].Value = "配信中";
+                row.Cells["liveURL"].Value = @"https://www.youtube.com/watch?v=" + liveID;
+            }
+            else
+            {
+                row.Cells["liveID"].Value = "";
+                row.Cells["status"].Value = "-";
+                row.Cells["liveURL"].Value = "";
+            }
+
+        }
+
+        private void dataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            DataGridView dgv = (DataGridView)sender;
+            //"Link"列ならば、ボタンがクリックされた
+            if (dgv.Columns[e.ColumnIndex].Name == "liveURL")
+            {
+                DataGridViewLinkCell cell = (DataGridViewLinkCell)dgv[e.ColumnIndex, e.RowIndex];
+
+                if(cell.Value.ToString().Length > 0)
+                {
+                    System.Diagnostics.Process.Start(cell.Value.ToString());
+                }
+            }
+        }
+
+
     }
 }

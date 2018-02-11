@@ -32,14 +32,14 @@
             this.textBox_Log = new System.Windows.Forms.TextBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.dataGridView = new System.Windows.Forms.DataGridView();
-            this.textBoxChannelID = new System.Windows.Forms.TextBox();
-            this.buttonInsert = new System.Windows.Forms.Button();
-            this.timer = new System.Windows.Forms.Timer(this.components);
             this.userName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.channelID = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.status = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.liveID = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.liveURL = new System.Windows.Forms.DataGridViewLinkColumn();
+            this.textBoxChannelID = new System.Windows.Forms.TextBox();
+            this.buttonInsert = new System.Windows.Forms.Button();
+            this.timer = new System.Windows.Forms.Timer(this.components);
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
             this.SuspendLayout();
@@ -82,28 +82,7 @@
             this.dataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView.Size = new System.Drawing.Size(829, 194);
             this.dataGridView.TabIndex = 2;
-            // 
-            // textBoxChannelID
-            // 
-            this.textBoxChannelID.Location = new System.Drawing.Point(29, 53);
-            this.textBoxChannelID.Name = "textBoxChannelID";
-            this.textBoxChannelID.Size = new System.Drawing.Size(333, 19);
-            this.textBoxChannelID.TabIndex = 3;
-            // 
-            // buttonInsert
-            // 
-            this.buttonInsert.Location = new System.Drawing.Point(393, 51);
-            this.buttonInsert.Name = "buttonInsert";
-            this.buttonInsert.Size = new System.Drawing.Size(75, 23);
-            this.buttonInsert.TabIndex = 4;
-            this.buttonInsert.Text = "追加";
-            this.buttonInsert.UseVisualStyleBackColor = true;
-            this.buttonInsert.Click += new System.EventHandler(this.buttonInsert_Click);
-            // 
-            // timer
-            // 
-            this.timer.Interval = 180000;
-            this.timer.Tick += new System.EventHandler(this.timer_Tick);
+            this.dataGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_CellContentClick);
             // 
             // userName
             // 
@@ -135,6 +114,28 @@
             this.liveURL.Name = "liveURL";
             this.liveURL.ReadOnly = true;
             this.liveURL.Width = 350;
+            // 
+            // textBoxChannelID
+            // 
+            this.textBoxChannelID.Location = new System.Drawing.Point(29, 53);
+            this.textBoxChannelID.Name = "textBoxChannelID";
+            this.textBoxChannelID.Size = new System.Drawing.Size(333, 19);
+            this.textBoxChannelID.TabIndex = 3;
+            // 
+            // buttonInsert
+            // 
+            this.buttonInsert.Location = new System.Drawing.Point(393, 51);
+            this.buttonInsert.Name = "buttonInsert";
+            this.buttonInsert.Size = new System.Drawing.Size(75, 23);
+            this.buttonInsert.TabIndex = 4;
+            this.buttonInsert.Text = "追加";
+            this.buttonInsert.UseVisualStyleBackColor = true;
+            this.buttonInsert.Click += new System.EventHandler(this.buttonInsert_Click);
+            // 
+            // timer
+            // 
+            this.timer.Interval = 10000;
+            this.timer.Tick += new System.EventHandler(this.timer_Tick);
             // 
             // Form1
             // 
