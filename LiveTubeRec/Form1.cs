@@ -3,6 +3,9 @@ using System.Windows.Forms;
 using Google.Apis.Services;
 using Google.Apis.YouTube.v3;
 using System.Linq;
+using System.Diagnostics;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace LiveTubeRec
 {
@@ -17,9 +20,40 @@ namespace LiveTubeRec
         }
 
         private void buttonInsert_Click(object sender, EventArgs e)
-        {            
-            int i = dataGridView.Rows.Add("", textBoxChannelID.Text);
-            setStatus(dataGridView.Rows[i]);
+        {
+            string urlType = "";
+            string urlID = "";
+
+            if(chackURL(textBoxChannelID.Text, ref urlType, ref urlID))
+            {
+                int rowNum = -1;
+                switch (urlType)
+                {
+                    case "channel":
+                        if (!textBoxChannelID_Validating(urlID))
+                        {
+                            rowNum = dataGridView.Rows.Add("", urlID);
+                        }
+                        else
+                        {
+                            writeLog("すでに登録されています。");
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                if(rowNum > 0)
+                {
+                    //setStatus(dataGridView.Rows[rowNum]);
+                }
+            }
+            else
+            {
+                writeLog("入力に誤りがあります。");
+            }
+
+            textBoxChannelID.Text = "";
         }
 
 
@@ -41,7 +75,7 @@ namespace LiveTubeRec
             }
         }
 
-        private string requestLiveID(string channelID)
+        private YoutubeDataModel requestLiveID(string channelID)
         {
             writeLog("Call Method : requestLiveID");
 
@@ -58,36 +92,47 @@ namespace LiveTubeRec
 
             var searchListResponse = searchListRequest.Execute();
 
-            string retLiveID = "";
+            YoutubeDataModel youtubeDataModel = null;
 
-            if(searchListResponse.Items.Count > 0)
+            if (searchListResponse.Items.Count > 0)
             {
-                retLiveID = searchListResponse.Items[0].Id.VideoId;
+                youtubeDataModel = new YoutubeDataModel();
+                youtubeDataModel.liveID = searchListResponse.Items[0].Id.VideoId;
+                youtubeDataModel.liveTitle = searchListResponse.Items[0].Snippet.ChannelTitle;
             }
 
-            return retLiveID;
+            return youtubeDataModel;
         }
 
         private void setStatus(DataGridViewRow row)
         {
-            string liveID = requestLiveID(row.Cells["channelID"].Value.ToString());
+            YoutubeDataModel youtubeDataModel = requestLiveID(row.Cells["channelID"].Value.ToString());
 
-            if (!"".Equals(liveID))
+            if (!"".Equals(youtubeDataModel.liveID))
             {
 
-                writeLog("debug : " + liveID);
+                writeLog("debug : " + youtubeDataModel.liveID);
 
-                row.Cells["liveURL"].Value = @"https://www.youtube.com/watch?v=" + liveID;
+                row.Cells["liveURL"].Value = @"https://www.youtube.com/watch?v=" + youtubeDataModel.liveID;
 
                 if (!"配信中".Equals(row.Cells["status"].Value))
                 {
-                    System.Diagnostics.Process p = System.Diagnostics.Process.Start(@"youtubeDL\youtube-dl.exe", row.Cells["liveURL"].Value.ToString());
+                    try
+                    {
+                       ProcessStartInfo info = new ProcessStartInfo();
+                        info.FileName = "youtube-dl.exe";
+                        info.WorkingDirectory = Directory.GetCurrentDirectory() + "\\youtubeDL";
+                        info.Arguments = row.Cells["liveURL"].Value.ToString();
+                        Process.Start(info);
+                    }
+                    catch(Exception e)
+                    {
+                        writeLog(e.Message);
+                    }
                 }
 
-                row.Cells["liveID"].Value = liveID;
-                row.Cells["status"].Value = "配信中";
-                row.Cells["liveURL"].Value = @"https://www.youtube.com/watch?v=" + liveID;
-            }
+                row.Cells["liveID"].Value = youtubeDataModel.liveID;
+                row.Cells["status"].Value = "配信中";            }
             else
             {
                 row.Cells["liveID"].Value = "";
@@ -97,21 +142,85 @@ namespace LiveTubeRec
 
         }
 
-        private void dataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private bool chackURL(string inputURL, ref string rtnType, ref string rtnID)
         {
-            DataGridView dgv = (DataGridView)sender;
-            //"Link"列ならば、ボタンがクリックされた
-            if (dgv.Columns[e.ColumnIndex].Name == "liveURL")
-            {
-                DataGridViewLinkCell cell = (DataGridViewLinkCell)dgv[e.ColumnIndex, e.RowIndex];
+            string expression = "(?<type>channel)/(?<id>.*?)(&|$|/)";
 
-                if(cell.Value.ToString().Length > 0)
-                {
-                    System.Diagnostics.Process.Start(cell.Value.ToString());
-                }
+            Regex reg = new Regex(expression);
+            Match match = reg.Match(inputURL);
+            bool rtn = match.Success;
+            if (rtn == true)
+            {
+                rtnType = match.Groups["type"].Value;
+                rtnID = match.Groups["id"].Value;
+            }
+
+            return rtn;
+        }
+
+        private void toolStripMenuItemDelete_Click(object sender, EventArgs e)
+        {
+            dataGridView.Rows.Remove(dataGridView.CurrentRow);
+        }
+
+        private void contextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (dataGridView.SelectedRows.Count < 1)
+            {
+                toolStripMenuItemDelete.Enabled = false;
+            }
+            else
+            {
+                toolStripMenuItemDelete.Enabled = true;
             }
         }
 
+        private void dataGridView_MouseDown(object sender, MouseEventArgs e)
+        {
+            writeLog("dataGridView_MouseDown");
+            if (e.Button == MouseButtons.Right)
+            {
+                dataGridView.ClearSelection();
+            }
+        }
 
+        private void dataGridView_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            writeLog("dataGridView_CellMouseDown");
+            if (e.Button == MouseButtons.Right)
+            {
+                dataGridView.ClearSelection();
+
+                if (e.RowIndex > -1)
+                {
+                    dataGridView.Rows[e.RowIndex].Selected = true;
+                }
+            }
+
+        }
+
+        private void textBoxChannelID_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar == (char)Keys.Enter)
+            {
+                e.Handled = true;
+                buttonInsert_Click(sender, e);
+            }
+        }
+
+        private bool textBoxChannelID_Validating(string inputCannelID)
+        {
+            bool rtn = false;
+            foreach (DataGridViewRow row in dataGridView.Rows)
+            {
+                // 編集中の行どうしでないとき
+                if (row.Cells["channelID"].Value != null && row.Cells["channelID"].Value.Equals(inputCannelID))
+                {
+                    rtn = true;
+                }
+            }
+
+            return rtn;
+        }
     }
 }
