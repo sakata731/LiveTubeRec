@@ -101,6 +101,7 @@ namespace LiveTubeRec
 				dataSet.Tables[0].Rows[i]["liveTitle"] = youtubedata.liveTitle;
 				dataSet.Tables[0].Rows[i]["liveURL"] = youtubedata.liveURL;
 				dataSet.Tables[0].Rows[i]["liveStartDate"] = youtubedata.liveStartDate;
+				dataSet.Tables[0].Rows[i]["liveEndDate"] = youtubedata.liveEndDate;
 				dataSet.Tables[0].Rows[i]["status"] = youtubedata.status;
 				dataSet.Tables[0].Rows[i]["requestLastDate"] = youtubedata.requestLastDate;
 			}
