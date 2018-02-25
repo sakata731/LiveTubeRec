@@ -121,6 +121,10 @@ namespace LiveTubeRec
 
 			var searchListResponse = searchListRequest.Execute();
 
+			inputYoutubeData.liveID = null;
+			inputYoutubeData.liveTitle = null;
+			inputYoutubeData.liveURL = null;
+
 			if (searchListResponse.Items.Count > 0)
 			{
 				inputYoutubeData.liveID = searchListResponse.Items[0].Id.VideoId;
@@ -129,6 +133,7 @@ namespace LiveTubeRec
 				inputYoutubeData.liveURL = @"https://www.youtube.com/watch?v=" + inputYoutubeData.liveID;
 
 			}
+			
 		}
 
 		private void setYoutubeData(ref YoutubeData youtubedata)
