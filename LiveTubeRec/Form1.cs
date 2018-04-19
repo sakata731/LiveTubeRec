@@ -7,21 +7,32 @@ using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Data;
+using System.Collections.Generic;
+using NLog;
 
 namespace LiveTubeRec
 {
 	public partial class Form1 : Form
 	{
-		private string _APIKEY = "AIzaSyDlNaoWfOHxy5PsL7QPYNN5oXOoRVp6z3I";
+		private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
+		private string _APIKEY;
+
+		//登録チャンネルを格納するリスト
+		private List<YoutubeData> _youtubeDataList;
 
 		public Form1()
 		{
 			InitializeComponent();
-			timer.Start();
+			//timer.Start();
 		}
 
+		//<summary>
+		// 追加ボタン
+		//</summary>
 		private void buttonInsert_Click(object sender, EventArgs e)
 		{
+			logger.Debug("button1 Pushed!");
+
 			string urlType = "";
 			string urlID = "";
 
@@ -30,7 +41,7 @@ namespace LiveTubeRec
 				switch (urlType)
 				{
 					case "channel":
-						if (!hasChannelID(urlID))
+						if (!HasChannelID(urlID))
 						{
 							YoutubeData youtubedata = new YoutubeData();
 							youtubedata.channelID = urlID;
@@ -51,7 +62,7 @@ namespace LiveTubeRec
 						}
 						else
 						{
-							writeLog("すでに登録されています。");
+							//writeLog("すでに登録されています。");
 						}
 						break;
 					default:
@@ -60,21 +71,10 @@ namespace LiveTubeRec
 			}
 			else
 			{
-				writeLog("入力に誤りがあります。");
+				//writeLog("入力に誤りがあります。");
 			}
 
 			textBoxChannelID.Text = "";
-		}
-
-
-		// テキストボックスへログ出力
-		// 引数：
-		//  logText : ログとして書き出すテキスト
-		void writeLog(String logText)
-		{
-			textBox_Log.SelectionStart = textBox_Log.Text.Length;
-			textBox_Log.SelectionLength = 0;
-			textBox_Log.SelectedText = "[" + System.DateTime.Now.ToString() + "] " + logText + "\r\n";
 		}
 
 		private void timer_Tick(object sender, EventArgs e)
@@ -141,11 +141,14 @@ namespace LiveTubeRec
 		{
 			youtubedata.requestLastDate = System.DateTime.Now;
 
-			writeLog("[INFO] " + "チャンネルID : " + youtubedata.channelID);
+			//writeLog("[INFO] " + "チャンネルID : " + youtubedata.channelID);
 			requestLiveID(ref youtubedata);
 
 			if (youtubedata.liveID != null && !"".Equals(youtubedata.liveID))
 			{
+				/*
+				 * 放送中であれば録画を開始する 
+				 */
 				if (!youtubedata.status)
 				{
 					try
@@ -158,7 +161,7 @@ namespace LiveTubeRec
 					}
 					catch (Exception e)
 					{
-						writeLog(e.Message);
+						//writeLog(e.Message);
 					}
 
 					youtubedata.liveStartDate = System.DateTime.Now;
@@ -223,7 +226,7 @@ namespace LiveTubeRec
 
 		//リストにチャンネルIDが登録されているかをチェック
 		// 登録済み:true 未登録:false
-		private bool hasChannelID(string inputCannelID)
+		private bool HasChannelID(string inputCannelID)
 		{
 			bool rtn = false;
 			foreach (DataGridViewRow row in dataGridView.Rows)
@@ -257,6 +260,12 @@ namespace LiveTubeRec
 			{
 				dataSet.WriteXml(@".\data\data.xml");
 			}
+
+			IniFile ini = new IniFile(@".\config\config.ini");
+			_APIKEY = ini["API", "key"];
+
+			Schedule sc = new Schedule(@".\config\schedule.ini");
+			sc.ReadSchedule();
 
 		}
 	}
