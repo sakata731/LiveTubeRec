@@ -30,16 +30,34 @@
         {
 			this.components = new System.ComponentModel.Container();
 			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle11 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle12 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle13 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle14 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
 			this.textBox_Log = new System.Windows.Forms.TextBox();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.dataGridView = new System.Windows.Forms.DataGridView();
+			this.userName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.channelID = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.liveID = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.liveTitle = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.liveURL = new System.Windows.Forms.DataGridViewLinkColumn();
+			this.LiveStartDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.LiveEndDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.status = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.requestLastDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.channelNameDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.channelIDDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.liveIDDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.liveTitleDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.liveURLDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.liveStartDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.liveEndDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.statusDataGridViewCheckBoxColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.requestLastDateDataGridViewTextBoxColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.toolStripMenuItemDelete = new System.Windows.Forms.ToolStripMenuItem();
-			this.dataSet = new System.Data.DataSet();
+			this.liveTubeDataSet = new System.Data.DataSet();
 			this.dataTable1 = new System.Data.DataTable();
 			this.dataColumn1 = new System.Data.DataColumn();
 			this.dataColumn2 = new System.Data.DataColumn();
@@ -52,23 +70,15 @@
 			this.dataColumn9 = new System.Data.DataColumn();
 			this.textBoxChannelID = new System.Windows.Forms.TextBox();
 			this.buttonInsert = new System.Windows.Forms.Button();
-			this.timer = new System.Windows.Forms.Timer(this.components);
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
-			this.userName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.channelID = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.liveID = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.liveTitle = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.liveURL = new System.Windows.Forms.DataGridViewLinkColumn();
-			this.LiveStartDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.LiveEndDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.status = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.requestLastDate = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.dataSet1 = new System.Data.DataSet();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
 			this.contextMenuStrip.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.dataSet)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.liveTubeDataSet)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.dataTable1)).BeginInit();
 			this.groupBox2.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.dataSet1)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// textBox_Log
@@ -117,10 +127,19 @@
             this.LiveStartDate,
             this.LiveEndDate,
             this.status,
-            this.requestLastDate});
+            this.requestLastDate,
+            this.channelNameDataGridViewTextBoxColumn,
+            this.channelIDDataGridViewTextBoxColumn,
+            this.liveIDDataGridViewTextBoxColumn,
+            this.liveTitleDataGridViewTextBoxColumn,
+            this.liveURLDataGridViewTextBoxColumn,
+            this.liveStartDateDataGridViewTextBoxColumn,
+            this.liveEndDateDataGridViewTextBoxColumn,
+            this.statusDataGridViewCheckBoxColumn,
+            this.requestLastDateDataGridViewTextBoxColumn});
 			this.dataGridView.ContextMenuStrip = this.contextMenuStrip;
 			this.dataGridView.DataMember = "Table1";
-			this.dataGridView.DataSource = this.dataSet;
+			this.dataGridView.DataSource = this.liveTubeDataSet;
 			this.dataGridView.Location = new System.Drawing.Point(12, 66);
 			this.dataGridView.Name = "dataGridView";
 			this.dataGridView.ReadOnly = true;
@@ -129,6 +148,147 @@
 			this.dataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
 			this.dataGridView.Size = new System.Drawing.Size(729, 265);
 			this.dataGridView.TabIndex = 2;
+			// 
+			// userName
+			// 
+			this.userName.DataPropertyName = "channelName";
+			this.userName.HeaderText = "ユーザー名";
+			this.userName.Name = "userName";
+			this.userName.ReadOnly = true;
+			// 
+			// channelID
+			// 
+			this.channelID.DataPropertyName = "channelID";
+			this.channelID.HeaderText = "チャンネルID";
+			this.channelID.Name = "channelID";
+			this.channelID.ReadOnly = true;
+			// 
+			// liveID
+			// 
+			this.liveID.DataPropertyName = "liveID";
+			this.liveID.HeaderText = "ライブID";
+			this.liveID.Name = "liveID";
+			this.liveID.ReadOnly = true;
+			// 
+			// liveTitle
+			// 
+			this.liveTitle.DataPropertyName = "liveTitle";
+			this.liveTitle.HeaderText = "番組名";
+			this.liveTitle.Name = "liveTitle";
+			this.liveTitle.ReadOnly = true;
+			// 
+			// liveURL
+			// 
+			this.liveURL.DataPropertyName = "liveURL";
+			this.liveURL.HeaderText = "配信URL";
+			this.liveURL.MinimumWidth = 100;
+			this.liveURL.Name = "liveURL";
+			this.liveURL.ReadOnly = true;
+			this.liveURL.Width = 200;
+			// 
+			// LiveStartDate
+			// 
+			this.LiveStartDate.DataPropertyName = "liveStartDate";
+			dataGridViewCellStyle2.Format = "G";
+			dataGridViewCellStyle2.NullValue = null;
+			this.LiveStartDate.DefaultCellStyle = dataGridViewCellStyle2;
+			this.LiveStartDate.HeaderText = "放送開始";
+			this.LiveStartDate.Name = "LiveStartDate";
+			this.LiveStartDate.ReadOnly = true;
+			// 
+			// LiveEndDate
+			// 
+			this.LiveEndDate.DataPropertyName = "liveEndDate";
+			dataGridViewCellStyle3.Format = "G";
+			dataGridViewCellStyle3.NullValue = null;
+			this.LiveEndDate.DefaultCellStyle = dataGridViewCellStyle3;
+			this.LiveEndDate.HeaderText = "放送終了";
+			this.LiveEndDate.Name = "LiveEndDate";
+			this.LiveEndDate.ReadOnly = true;
+			// 
+			// status
+			// 
+			this.status.DataPropertyName = "status";
+			dataGridViewCellStyle4.NullValue = null;
+			this.status.DefaultCellStyle = dataGridViewCellStyle4;
+			this.status.HeaderText = "状況";
+			this.status.Name = "status";
+			this.status.ReadOnly = true;
+			// 
+			// requestLastDate
+			// 
+			this.requestLastDate.DataPropertyName = "requestLastDate";
+			dataGridViewCellStyle5.Format = "G";
+			dataGridViewCellStyle5.NullValue = null;
+			this.requestLastDate.DefaultCellStyle = dataGridViewCellStyle5;
+			this.requestLastDate.HeaderText = "最終リクエスト日時";
+			this.requestLastDate.MinimumWidth = 100;
+			this.requestLastDate.Name = "requestLastDate";
+			this.requestLastDate.ReadOnly = true;
+			this.requestLastDate.Width = 120;
+			// 
+			// channelNameDataGridViewTextBoxColumn
+			// 
+			this.channelNameDataGridViewTextBoxColumn.DataPropertyName = "channelName";
+			this.channelNameDataGridViewTextBoxColumn.HeaderText = "channelName";
+			this.channelNameDataGridViewTextBoxColumn.Name = "channelNameDataGridViewTextBoxColumn";
+			this.channelNameDataGridViewTextBoxColumn.ReadOnly = true;
+			// 
+			// channelIDDataGridViewTextBoxColumn
+			// 
+			this.channelIDDataGridViewTextBoxColumn.DataPropertyName = "channelID";
+			this.channelIDDataGridViewTextBoxColumn.HeaderText = "channelID";
+			this.channelIDDataGridViewTextBoxColumn.Name = "channelIDDataGridViewTextBoxColumn";
+			this.channelIDDataGridViewTextBoxColumn.ReadOnly = true;
+			// 
+			// liveIDDataGridViewTextBoxColumn
+			// 
+			this.liveIDDataGridViewTextBoxColumn.DataPropertyName = "liveID";
+			this.liveIDDataGridViewTextBoxColumn.HeaderText = "liveID";
+			this.liveIDDataGridViewTextBoxColumn.Name = "liveIDDataGridViewTextBoxColumn";
+			this.liveIDDataGridViewTextBoxColumn.ReadOnly = true;
+			// 
+			// liveTitleDataGridViewTextBoxColumn
+			// 
+			this.liveTitleDataGridViewTextBoxColumn.DataPropertyName = "liveTitle";
+			this.liveTitleDataGridViewTextBoxColumn.HeaderText = "liveTitle";
+			this.liveTitleDataGridViewTextBoxColumn.Name = "liveTitleDataGridViewTextBoxColumn";
+			this.liveTitleDataGridViewTextBoxColumn.ReadOnly = true;
+			// 
+			// liveURLDataGridViewTextBoxColumn
+			// 
+			this.liveURLDataGridViewTextBoxColumn.DataPropertyName = "liveURL";
+			this.liveURLDataGridViewTextBoxColumn.HeaderText = "liveURL";
+			this.liveURLDataGridViewTextBoxColumn.Name = "liveURLDataGridViewTextBoxColumn";
+			this.liveURLDataGridViewTextBoxColumn.ReadOnly = true;
+			// 
+			// liveStartDateDataGridViewTextBoxColumn
+			// 
+			this.liveStartDateDataGridViewTextBoxColumn.DataPropertyName = "liveStartDate";
+			this.liveStartDateDataGridViewTextBoxColumn.HeaderText = "liveStartDate";
+			this.liveStartDateDataGridViewTextBoxColumn.Name = "liveStartDateDataGridViewTextBoxColumn";
+			this.liveStartDateDataGridViewTextBoxColumn.ReadOnly = true;
+			// 
+			// liveEndDateDataGridViewTextBoxColumn
+			// 
+			this.liveEndDateDataGridViewTextBoxColumn.DataPropertyName = "liveEndDate";
+			this.liveEndDateDataGridViewTextBoxColumn.HeaderText = "liveEndDate";
+			this.liveEndDateDataGridViewTextBoxColumn.Name = "liveEndDateDataGridViewTextBoxColumn";
+			this.liveEndDateDataGridViewTextBoxColumn.ReadOnly = true;
+			// 
+			// statusDataGridViewCheckBoxColumn
+			// 
+			this.statusDataGridViewCheckBoxColumn.DataPropertyName = "status";
+			this.statusDataGridViewCheckBoxColumn.HeaderText = "status";
+			this.statusDataGridViewCheckBoxColumn.Name = "statusDataGridViewCheckBoxColumn";
+			this.statusDataGridViewCheckBoxColumn.ReadOnly = true;
+			// 
+			// requestLastDateDataGridViewTextBoxColumn
+			// 
+			this.requestLastDateDataGridViewTextBoxColumn.DataPropertyName = "requestLastDate";
+			this.requestLastDateDataGridViewTextBoxColumn.HeaderText = "requestLastDate";
+			this.requestLastDateDataGridViewTextBoxColumn.Name = "requestLastDateDataGridViewTextBoxColumn";
+			this.requestLastDateDataGridViewTextBoxColumn.ReadOnly = true;
 			// 
 			// contextMenuStrip
 			// 
@@ -145,10 +305,10 @@
 			this.toolStripMenuItemDelete.Text = "削除";
 			this.toolStripMenuItemDelete.Click += new System.EventHandler(this.toolStripMenuItemDelete_Click);
 			// 
-			// dataSet
+			// liveTubeDataSet
 			// 
-			this.dataSet.DataSetName = "DataSet";
-			this.dataSet.Tables.AddRange(new System.Data.DataTable[] {
+			this.liveTubeDataSet.DataSetName = "LiveTubeDataSet";
+			this.liveTubeDataSet.Tables.AddRange(new System.Data.DataTable[] {
             this.dataTable1});
 			// 
 			// dataTable1
@@ -225,11 +385,6 @@
 			this.buttonInsert.UseVisualStyleBackColor = true;
 			this.buttonInsert.Click += new System.EventHandler(this.buttonInsert_Click);
 			// 
-			// timer
-			// 
-			this.timer.Interval = 180000;
-			this.timer.Tick += new System.EventHandler(this.timer_Tick);
-			// 
 			// groupBox2
 			// 
 			this.groupBox2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -243,83 +398,9 @@
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "記録するチャンネルを追加";
 			// 
-			// userName
+			// dataSet1
 			// 
-			this.userName.DataPropertyName = "channelName";
-			this.userName.HeaderText = "ユーザー名";
-			this.userName.Name = "userName";
-			this.userName.ReadOnly = true;
-			// 
-			// channelID
-			// 
-			this.channelID.DataPropertyName = "channelID";
-			this.channelID.HeaderText = "チャンネルID";
-			this.channelID.Name = "channelID";
-			this.channelID.ReadOnly = true;
-			// 
-			// liveID
-			// 
-			this.liveID.DataPropertyName = "liveID";
-			this.liveID.HeaderText = "ライブID";
-			this.liveID.Name = "liveID";
-			this.liveID.ReadOnly = true;
-			// 
-			// liveTitle
-			// 
-			this.liveTitle.DataPropertyName = "liveTitle";
-			this.liveTitle.HeaderText = "番組名";
-			this.liveTitle.Name = "liveTitle";
-			this.liveTitle.ReadOnly = true;
-			// 
-			// liveURL
-			// 
-			this.liveURL.DataPropertyName = "liveURL";
-			this.liveURL.HeaderText = "配信URL";
-			this.liveURL.MinimumWidth = 100;
-			this.liveURL.Name = "liveURL";
-			this.liveURL.ReadOnly = true;
-			this.liveURL.Width = 200;
-			// 
-			// LiveStartDate
-			// 
-			this.LiveStartDate.DataPropertyName = "liveStartDate";
-			dataGridViewCellStyle11.Format = "G";
-			dataGridViewCellStyle11.NullValue = null;
-			this.LiveStartDate.DefaultCellStyle = dataGridViewCellStyle11;
-			this.LiveStartDate.HeaderText = "放送開始";
-			this.LiveStartDate.Name = "LiveStartDate";
-			this.LiveStartDate.ReadOnly = true;
-			// 
-			// LiveEndDate
-			// 
-			this.LiveEndDate.DataPropertyName = "liveEndDate";
-			dataGridViewCellStyle12.Format = "G";
-			dataGridViewCellStyle12.NullValue = null;
-			this.LiveEndDate.DefaultCellStyle = dataGridViewCellStyle12;
-			this.LiveEndDate.HeaderText = "放送終了";
-			this.LiveEndDate.Name = "LiveEndDate";
-			this.LiveEndDate.ReadOnly = true;
-			// 
-			// status
-			// 
-			this.status.DataPropertyName = "status";
-			dataGridViewCellStyle13.NullValue = null;
-			this.status.DefaultCellStyle = dataGridViewCellStyle13;
-			this.status.HeaderText = "状況";
-			this.status.Name = "status";
-			this.status.ReadOnly = true;
-			// 
-			// requestLastDate
-			// 
-			this.requestLastDate.DataPropertyName = "requestLastDate";
-			dataGridViewCellStyle14.Format = "G";
-			dataGridViewCellStyle14.NullValue = null;
-			this.requestLastDate.DefaultCellStyle = dataGridViewCellStyle14;
-			this.requestLastDate.HeaderText = "最終リクエスト日時";
-			this.requestLastDate.MinimumWidth = 100;
-			this.requestLastDate.Name = "requestLastDate";
-			this.requestLastDate.ReadOnly = true;
-			this.requestLastDate.Width = 120;
+			this.dataSet1.DataSetName = "NewDataSet";
 			// 
 			// Form1
 			// 
@@ -337,10 +418,11 @@
 			this.groupBox1.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
 			this.contextMenuStrip.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)(this.dataSet)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.liveTubeDataSet)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.dataTable1)).EndInit();
 			this.groupBox2.ResumeLayout(false);
 			this.groupBox2.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.dataSet1)).EndInit();
 			this.ResumeLayout(false);
 
         }
@@ -352,11 +434,10 @@
         private System.Windows.Forms.DataGridView dataGridView;
         private System.Windows.Forms.TextBox textBoxChannelID;
         private System.Windows.Forms.Button buttonInsert;
-        private System.Windows.Forms.Timer timer;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemDelete;
-		private System.Data.DataSet dataSet;
+		private System.Data.DataSet liveTubeDataSet;
 		private System.Data.DataTable dataTable1;
 		private System.Data.DataColumn dataColumn1;
 		private System.Data.DataColumn dataColumn2;
@@ -376,6 +457,16 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn LiveEndDate;
 		private System.Windows.Forms.DataGridViewTextBoxColumn status;
 		private System.Windows.Forms.DataGridViewTextBoxColumn requestLastDate;
+		private System.Windows.Forms.DataGridViewTextBoxColumn channelNameDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn channelIDDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn liveIDDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn liveTitleDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn liveURLDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn liveStartDateDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn liveEndDateDataGridViewTextBoxColumn;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn statusDataGridViewCheckBoxColumn;
+		private System.Windows.Forms.DataGridViewTextBoxColumn requestLastDateDataGridViewTextBoxColumn;
+		private System.Data.DataSet dataSet1;
 	}
 }
 
