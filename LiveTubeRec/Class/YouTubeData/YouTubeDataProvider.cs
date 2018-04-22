@@ -27,9 +27,9 @@ namespace LiveTubeRec
 		}
 
 		//チャンネルから生放送の情報を取得します
-		public LiveData RequestLiveData(string channelID)
+		public Dictionary<string,string> RequestLiveData(string channelID)
 		{
-			LiveData liveData;
+			Dictionary<string, string> dictionary;
 
 			//検索条件の設定
 			var searchListRequest = _youtubeService.Search.List("id,snippet");
@@ -44,18 +44,50 @@ namespace LiveTubeRec
 			//データ数のカウント
 			if (searchListResponse.Items.Count > 0)
 			{
-				liveData = new LiveData();
+				dictionary = new Dictionary<string, string>();
 
 				//データの整形
-				liveData.ID = searchListResponse.Items[0].Id.VideoId;
-				liveData.Title = searchListResponse.Items[0].Snippet.Title;
-				liveData.URL = @"https://www.youtube.com/watch?v=" + liveData.ID;
+				dictionary.Add("liveID", searchListResponse.Items[0].Id.VideoId);
+				dictionary.Add("liveTitle", searchListResponse.Items[0].Snippet.Title);
+				dictionary.Add("liveUrl", "https://www.youtube.com/watch?v=" + searchListResponse.Items[0].Id.VideoId);
 			}else
 			{
-				liveData = null;
+				dictionary = null;
 			}
 
-			return liveData;
+			return dictionary;
 		}
+
+		//チャンネルIDからチャンネルの情報を取得します
+		public Dictionary<string, string> RequestChannelData(string channelID)
+		{
+			Dictionary<string, string> dictionary;
+
+			//検索条件の設定
+			var searchListRequest = _youtubeService.Search.List("snippet");
+			searchListRequest.Type = "channel";
+			searchListRequest.Fields = "items(snippet/title,snippet/thumbnails/default/url)";
+			searchListRequest.ChannelId = channelID;
+
+			//APIの発行
+			var searchListResponse = searchListRequest.Execute();
+
+			//データ数のカウント
+			if (searchListResponse.Items.Count > 0)
+			{
+				dictionary = new Dictionary<string, string>();
+
+				//データの整形
+				dictionary.Add("channelName", searchListResponse.Items[0].Snippet.Title);
+				dictionary.Add("thumbnail", searchListResponse.Items[0].Snippet.Thumbnails.Default__.Url);
+			}
+			else
+			{
+				dictionary = null;
+			}
+
+			return dictionary;
+		}
+
 	}
 }
