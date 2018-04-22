@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Windows.Forms;
 using NLog;
+using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Data;
 
 namespace LiveTubeRec
 {
 	public partial class Form1 : Form
 	{
 		private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
-		private YouTubeDataProvider _youtubeGateway;
-		private Schedule _schedule;
+
+		private static ChannelManager _ChannelManager;
 
 		public Form1()
 		{
@@ -17,14 +20,6 @@ namespace LiveTubeRec
 
 		private void Form1_Load(object sender, EventArgs e)
 		{
-			//apiキーの初期設定
-			IniFile ini = new IniFile(@".\config\config.ini");
-			_youtubeGateway = new YouTubeDataProvider(ini["API", "key"]);
-
-			//リクエストスケジュールの初期化
-			_schedule = new Schedule(@".\config\schedule.ini");
-			_schedule.ReadSchedule();
-
 			//データセットの初期化
 			liveTubeDataSet.Clear();
 			DirectoryUtils.SafeCreateDirectory(@".\data");
@@ -38,6 +33,9 @@ namespace LiveTubeRec
 				liveTubeDataSet.WriteXml(@".\data\data.xml");
 			}
 
+			_ChannelManager = new ChannelManager(@".\config\config.ini");
+			int rtn = _ChannelManager.CreateChannelItemList(liveTubeDataSet.Tables[0]);
+
 
 		}
 
@@ -47,6 +45,26 @@ namespace LiveTubeRec
 		//</summary>
 		private void buttonInsert_Click(object sender, EventArgs e)
 		{
+			string inputText = textBoxChannelID.Text;
+
+			if ("".Equals(inputText)) return;
+
+			string channelID = this.GetChannelID(textBoxChannelID.Text);
+			if (!"".Equals(channelID) && !HasChannelID(channelID))
+			{
+				_ChannelManager.AddChannelItem(channelID);
+
+				DataTable table = liveTubeDataSet.Tables["ChannelTable"];
+				DataRow row = table.NewRow();
+				row["channelID"] = _ChannelManager.GetChannelItem(channelID).ChannelID;
+
+				table.Rows.Add(row);
+			}
+			else
+			{
+				logger.Error("入力したURLが正しくないか、一覧に存在しているため追加できません。");
+			}
+
 			textBoxChannelID.Text = "";
 		}
 
@@ -95,6 +113,27 @@ namespace LiveTubeRec
 			}
 
 			return rtn;
+		}
+
+		//URLからチェンネルIDを取得 取得できなければnullを返す
+		private string GetChannelID(string inputURL)
+		{
+			logger.Debug("[" + this.GetType().Name + "][" + MethodBase.GetCurrentMethod().Name + "]" + "Start");
+
+			string expression = "(?<type>channel)/(?<id>.*?)(&|$|/)";
+
+			Regex reg = new Regex(expression);
+			Match match = reg.Match(inputURL);
+			bool rtn = match.Success;
+			if (rtn == true)
+			{
+				//rtnType = match.Groups["type"].Value;
+				return match.Groups["id"].Value;
+			}
+			else
+			{
+				return null;
+			}
 		}
 
 		private void Form1_FormClosing(object sender, FormClosingEventArgs e)

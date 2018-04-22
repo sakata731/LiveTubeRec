@@ -13,7 +13,7 @@ using System.Data;
 
 namespace LiveTubeRec
 {
-	//YouTubeAPIでデータを取得し、YouTubeDataで返却するクラス
+	//YouTubeAPIでデータを取得し、LiveDataで返却するクラス
 	public class YouTubeDataProvider
 	{
 		private YouTubeService _youtubeService;
@@ -27,7 +27,7 @@ namespace LiveTubeRec
 		}
 
 		//チャンネルから生放送の情報を取得します
-		public LiveData RequestLiveInformation(string channelID)
+		public LiveData RequestLiveData(string channelID)
 		{
 			LiveData liveData;
 
@@ -47,9 +47,9 @@ namespace LiveTubeRec
 				liveData = new LiveData();
 
 				//データの整形
-				liveData.id = searchListResponse.Items[0].Id.VideoId;
-				liveData.title = searchListResponse.Items[0].Snippet.Title;
-				liveData.url = @"https://www.youtube.com/watch?v=" + liveData.id;
+				liveData.ID = searchListResponse.Items[0].Id.VideoId;
+				liveData.Title = searchListResponse.Items[0].Snippet.Title;
+				liveData.URL = @"https://www.youtube.com/watch?v=" + liveData.ID;
 			}else
 			{
 				liveData = null;

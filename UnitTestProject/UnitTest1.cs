@@ -22,7 +22,7 @@ namespace UnitTestProject
 
 			Thread.Sleep(60000);
 
-			Assert.AreEqual(DateTime.Now, item._liveData.lastRequestDate); // 実行結果の確認
+			Assert.AreEqual(DateTime.Now, item.LiveData.LastRequestTime); // 実行結果の確認
 		}
 	}
 }
