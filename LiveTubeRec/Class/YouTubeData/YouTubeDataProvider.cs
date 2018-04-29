@@ -27,10 +27,9 @@ namespace LiveTubeRec
 		}
 
 		//チャンネルから生放送の情報を取得します
-		public Dictionary<string,string> RequestLiveData(string channelID)
+		//keylist liveID, liveTitle, liveUrl
+		public Dictionary<string, object> RequestLiveData(string channelID)
 		{
-			Dictionary<string, string> dictionary;
-
 			//検索条件の設定
 			var searchListRequest = _youtubeService.Search.List("id,snippet");
 			searchListRequest.EventType = SearchResource.ListRequest.EventTypeEnum.Live;
@@ -38,36 +37,36 @@ namespace LiveTubeRec
 			searchListRequest.Fields = "items(id/videoId,snippet(title,channelTitle))";
 			searchListRequest.ChannelId = channelID;
 
+			Dictionary<string, object> dictionary = new Dictionary<string, object>();
+			dictionary.Add("liveStatus", false);
+
 			//APIの発行
 			var searchListResponse = searchListRequest.Execute();
 
 			//データ数のカウント
 			if (searchListResponse.Items.Count > 0)
 			{
-				dictionary = new Dictionary<string, string>();
-
 				//データの整形
+				dictionary["liveStatus"] = true;
 				dictionary.Add("liveID", searchListResponse.Items[0].Id.VideoId);
 				dictionary.Add("liveTitle", searchListResponse.Items[0].Snippet.Title);
 				dictionary.Add("liveUrl", "https://www.youtube.com/watch?v=" + searchListResponse.Items[0].Id.VideoId);
-			}else
-			{
-				dictionary = null;
 			}
 
 			return dictionary;
 		}
 
 		//チャンネルIDからチャンネルの情報を取得します
-		public Dictionary<string, string> RequestChannelData(string channelID)
+		//keylist channelName, thumbnail
+		public Dictionary<string, object> RequestChannelData(string channelID)
 		{
-			Dictionary<string, string> dictionary;
-
 			//検索条件の設定
 			var searchListRequest = _youtubeService.Search.List("snippet");
 			searchListRequest.Type = "channel";
 			searchListRequest.Fields = "items(snippet/title,snippet/thumbnails/default/url)";
 			searchListRequest.ChannelId = channelID;
+
+			Dictionary<string, object> dictionary = new Dictionary<string, object>();
 
 			//APIの発行
 			var searchListResponse = searchListRequest.Execute();
@@ -75,19 +74,12 @@ namespace LiveTubeRec
 			//データ数のカウント
 			if (searchListResponse.Items.Count > 0)
 			{
-				dictionary = new Dictionary<string, string>();
-
 				//データの整形
 				dictionary.Add("channelName", searchListResponse.Items[0].Snippet.Title);
 				dictionary.Add("thumbnail", searchListResponse.Items[0].Snippet.Thumbnails.Default__.Url);
 			}
-			else
-			{
-				dictionary = null;
-			}
 
 			return dictionary;
 		}
-
 	}
 }

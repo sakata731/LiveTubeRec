@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -15,7 +16,6 @@ namespace LiveTubeRec
 	{
 		private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
-		private Dictionary<string,ChannelItem> _channelItems;
 		private YouTubeDataProvider _youTubeDataProvider;
 		private Schedule _schedule;
 
@@ -23,150 +23,103 @@ namespace LiveTubeRec
 		{
 			IniFile ini = new IniFile(iniFilePath);
 			this._schedule = new Schedule(iniFilePath);
-
 			this._youTubeDataProvider = new YouTubeDataProvider(ini["API", "key"]);
 		}
 
-		public ChannelItem GetChannelItem(string channelID)
+		public DataRow GetPreparedDataRow(string channelID, DataTable table)
 		{
-			return _channelItems[channelID];
-		}
+			logger.Debug("start");
 
-		//テーブルからチャンネル一覧のリストを生成
-		public int CreateChannelItemList(DataTable table)
-		{
-			_channelItems = new Dictionary<string, ChannelItem>();
-
-			foreach (DataRow row in table.Rows)
-			{
-				ChannelItem item = CreateChannelItem(
-					row["ChannelID"].ToString(),
-					row["ChannelName"].ToString(),
-					row["Thumbnail"].ToString(),
-					_schedule,
-					new DateTime(),
-					new DateTime(),
-					new DateTime(),
-					new DateTime(),
-					DateTime.Parse(row["AddDate"].ToString())
-				);
-
-				//ライブ内容をログに吐き出す
-				item.LogingChannelItem();
-
-				_channelItems.Add(item.Id, item);
-			}
-
-			return _channelItems.Count;
-		}
-
-		//チャンネルIDからチャンネルアイテムを生成
-		//チャンネルの存在確認の例外対策したい・・・
-		public ChannelItem AddChannelItem(string channelID)
-		{
-			Dictionary<string, string> dic;
+			Dictionary<string, object> dic;
 			dic = this._youTubeDataProvider.RequestChannelData(channelID);
 
-			ChannelItem item = CreateChannelItem(
-				channelID,
-				dic["channelName"],
-				dic["thumbnail"],
-				_schedule,
-				new DateTime(),
-				new DateTime(),
-				new DateTime(),
-				new DateTime(),
-				DateTime.Now
-			);
+			DataRow row = table.NewRow();
 
-			//ライブ内容をログに吐き出す
-			item.LogingChannelItem();
+			row["channelID"] = channelID;
+			row["channelName"] = dic["channelName"];
+			row["addDate"] = DateTime.Now;
 
-			_channelItems.Add(item.Id, item);
+			string url = dic["thumbnail"].ToString();
+			string path = @".\data\image\" + channelID + ".png";
 
-			return item;
-		}
+			row["thumbnailUrl"] = url;
+			row["thumbnailPath"] = path;
 
-		public void RemoveChannelItem(string channelID)
-		{
-			logger.Debug("Remove ChannelID : " + channelID);
-
-			this._channelItems.Remove(channelID);
-		}
-
-		private ChannelItem CreateChannelItem(
-			string channelID,
-			string channelName,
-			string thumbnail,
-			Schedule schedule,
-			DateTime liveStartTime,
-			DateTime liveEndTime,
-			DateTime liveLastRequestTime,
-			DateTime liveNextRequestTime,
-			DateTime addDate
-		)
-		{
-			ChannelItem item = new ChannelItem();
-
-			//チャンネル基本情報
-			item.Id = channelID;
-			item.Name = channelName;
-			item.Thumbnail = thumbnail;
-			item.Schedule = schedule;
-			item.AddDate = addDate;
-
-			//ライブ情報（初期化）
-			LiveData live = new LiveData();
-			live.ID = "";
-			live.Status = false;
-			live.Title = "";
-			live.URL = "";
-			live.StartTime = liveStartTime;
-			live.EndTime = liveEndTime;
-			live.LastRequestTime = liveLastRequestTime;
-			live.NextRequestTime = liveNextRequestTime;
-
-			item.LiveData = live;
-
-			return item;
-		}
-
-		/*
-		//現時刻がスケージュールされていればYouTuveDataProviderを呼び出しライブデータを更新する⇨マネージャクラスに移動
-		private void _CheckLiveStatus(object sender, ElapsedEventArgs e)
-		{
-			System.Diagnostics.Debug.WriteLine("_CheckLiveStatus");
-
-			DateTime dt = DateTime.Now;
-			if (0 <= Array.IndexOf(Schedule.scheduleList[dt.Hour], dt.Minute))
+			if (!System.IO.File.Exists(path))
 			{
-				Dictionary<string, string> dic = YoutubeDataProvider.RequestLiveData(this.ChannelID);
-				if (dic != null)
+				Bitmap bmp = new Bitmap(Utils.loadImageFromURL(url));
+				bmp.Save(@".\data\image\" + channelID + ".png", System.Drawing.Imaging.ImageFormat.Png);
+			}
+
+			return row;
+		}
+
+		//現時刻がスケージュールされていればテーブルを更新する
+		public void UpdateChanelData(ref DataTable table)
+		{
+			logger.Debug("checking start");
+
+			for (int i = 0; i < table.Rows.Count; i++)
+			{
+				if ((bool)table.Rows[i]["appStat"] != true)
 				{
-					this.LiveData.ID = dic["id"];
-					this.LiveData.Title = dic["title"];
-					this.LiveData.URL = dic["url"];
+					DateTime dt = DateTime.Now;
+					int[] schedule = _schedule.scheduleList[dt.Hour];
+					if (0 != schedule.Length
+						&& (-1 == schedule[0] || 0 <= Array.IndexOf(schedule, dt.Minute))) //indexof 引数が要素の中で何番目にあるかを返す
+					{
+						Dictionary<string, object> dic = this.CheckLiveStatus(table.Rows[i]["channelID"].ToString());
 
-					this.LiveData.StartTime = dt;
-					this.LiveData.Status = true;
+						table.Rows[i]["liveStatus"] = dic["liveStatus"];
+						if ((bool)dic["liveStatus"])
+						{
+							table.Rows[i]["liveID"] = dic["liveID"];
+							table.Rows[i]["liveTitle"] = dic["liveTitle"];
+							table.Rows[i]["liveUrl"] = dic["liveUrl"];
+
+							table.Rows[i]["liveStartTime"] = dic["liveStartTime"];
+						}
+
+						table.Rows[i]["liveLastRequestTime"] = dic["liveLastRequestTime"];
+
+						logger.Debug("row changed");
+					}
 				}
-				this.LiveData.LastRequestTime = dt;
-
-				_LogingLiveData();
 			}
 		}
-		
-		//ライブ情報のモニタリング開始
-		public void StartMoniterLiveStatus()
-		{
-			System.Diagnostics.Debug.WriteLine("StartMoniterLiveStatus");
-			Timer timer = new Timer();
-			timer.Elapsed += new ElapsedEventHandler(_CheckLiveStatus);
-			timer.Interval = 30000; //msec
 
-			timer.Start();
+		public void UpdateChanelData(DataRow row)
+		{
+			Dictionary<string, object> dic = this.CheckLiveStatus(row["channelID"].ToString());
+
+			row["liveStatus"] = dic["liveStatus"];
+			if ((bool)dic["liveStatus"])
+			{
+				row["liveID"] = dic["liveID"];
+				row["liveTitle"] = dic["liveTitle"];
+				row["liveUrl"] = dic["liveUrl"];
+				row["liveStartTime"] = dic["liveStartTime"];
+			}
+
+			row["liveLastRequestTime"] = dic["liveLastRequestTime"];
 		}
 
-	*/
+
+		private Dictionary<string, object> CheckLiveStatus(string channelID)
+		{
+			logger.Debug("start");
+
+			DateTime dt = DateTime.Now;
+
+			Dictionary<string, object> dic = _youTubeDataProvider.RequestLiveData(channelID);
+			if ((bool)dic["liveStatus"])
+			{
+				dic.Add("liveStartTime", dt);
+			}
+
+			dic.Add("liveLastRequestTime", dt);
+
+			return dic;
+		}
 	}
 }

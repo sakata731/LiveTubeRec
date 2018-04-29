@@ -16,7 +16,7 @@ namespace UnitTestProject
 			YouTubeDataProvider ydp = new YouTubeDataProvider((new IniFile(config)["API","key"]));
 			Schedule schedule = new Schedule(config);
 
-			ChannelItem item = new ChannelItem();
+			Channel item = new Channel();
 			item.Initialize("https://www.youtube.com/channel/UC87o3e14Vh9lQ6BhZXqC6GQ", ydp, schedule);
 			item.StartMoniterLiveStatus();
 

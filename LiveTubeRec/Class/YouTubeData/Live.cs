@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace LiveTubeRec
 {
-	public class LiveData
+	public class Live
 	{
 		public string ID { get; set; }  //ライブID
 		public string URL { get; set; } //ライブURL
