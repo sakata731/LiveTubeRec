@@ -89,7 +89,7 @@
 			this.textBox_Log.Name = "textBox_Log";
 			this.textBox_Log.ReadOnly = true;
 			this.textBox_Log.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-			this.textBox_Log.Size = new System.Drawing.Size(923, 98);
+			this.textBox_Log.Size = new System.Drawing.Size(893, 98);
 			this.textBox_Log.TabIndex = 0;
 			// 
 			// groupBox1
@@ -98,7 +98,7 @@
 			this.groupBox1.Dock = System.Windows.Forms.DockStyle.Bottom;
 			this.groupBox1.Location = new System.Drawing.Point(0, 375);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(947, 128);
+			this.groupBox1.Size = new System.Drawing.Size(917, 128);
 			this.groupBox1.TabIndex = 1;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "ログ";
@@ -107,6 +107,7 @@
 			// 
 			this.dataGridView.AllowUserToAddRows = false;
 			this.dataGridView.AllowUserToDeleteRows = false;
+			this.dataGridView.AllowUserToOrderColumns = true;
 			this.dataGridView.AllowUserToResizeRows = false;
 			dataGridViewCellStyle1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
 			this.dataGridView.AlternatingRowsDefaultCellStyle = dataGridViewCellStyle1;
@@ -137,8 +138,9 @@
 			this.dataGridView.RowHeadersVisible = false;
 			this.dataGridView.RowTemplate.Height = 21;
 			this.dataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-			this.dataGridView.Size = new System.Drawing.Size(923, 303);
+			this.dataGridView.Size = new System.Drawing.Size(893, 303);
 			this.dataGridView.TabIndex = 2;
+			this.dataGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_CellContentClick);
 			// 
 			// contextMenuStrip
 			// 
@@ -273,7 +275,7 @@
 			this.groupBox2.Controls.Add(this.buttonInsert);
 			this.groupBox2.Location = new System.Drawing.Point(12, 12);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(923, 48);
+			this.groupBox2.Size = new System.Drawing.Size(893, 48);
 			this.groupBox2.TabIndex = 5;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "記録するチャンネルを追加";
@@ -300,6 +302,7 @@
 			this.dgvChannelName.HeaderText = "チャンネル名";
 			this.dgvChannelName.Name = "dgvChannelName";
 			this.dgvChannelName.ReadOnly = true;
+			this.dgvChannelName.Width = 200;
 			// 
 			// dgvLiveID
 			// 
@@ -314,6 +317,7 @@
 			this.dgvLiveTitle.HeaderText = "番組名";
 			this.dgvLiveTitle.Name = "dgvLiveTitle";
 			this.dgvLiveTitle.ReadOnly = true;
+			this.dgvLiveTitle.Width = 200;
 			// 
 			// dgvStatus
 			// 
@@ -322,6 +326,7 @@
 			this.dgvStatus.HeaderText = "状況";
 			this.dgvStatus.Name = "dgvStatus";
 			this.dgvStatus.ReadOnly = true;
+			this.dgvStatus.Width = 60;
 			// 
 			// dgvLiveURL
 			// 
@@ -341,6 +346,7 @@
 			this.dgvLiveStartTime.HeaderText = "放送開始";
 			this.dgvLiveStartTime.Name = "dgvLiveStartTime";
 			this.dgvLiveStartTime.ReadOnly = true;
+			this.dgvLiveStartTime.Width = 110;
 			// 
 			// dgvLiveEndDate
 			// 
@@ -351,6 +357,7 @@
 			this.dgvLiveEndDate.HeaderText = "放送終了";
 			this.dgvLiveEndDate.Name = "dgvLiveEndDate";
 			this.dgvLiveEndDate.ReadOnly = true;
+			this.dgvLiveEndDate.Width = 110;
 			// 
 			// dgvLastRequestDate
 			// 
@@ -359,10 +366,9 @@
 			dataGridViewCellStyle5.NullValue = null;
 			this.dgvLastRequestDate.DefaultCellStyle = dataGridViewCellStyle5;
 			this.dgvLastRequestDate.HeaderText = "最終リクエスト";
-			this.dgvLastRequestDate.MinimumWidth = 100;
 			this.dgvLastRequestDate.Name = "dgvLastRequestDate";
 			this.dgvLastRequestDate.ReadOnly = true;
-			this.dgvLastRequestDate.Width = 120;
+			this.dgvLastRequestDate.Width = 110;
 			// 
 			// dgvAddDate
 			// 
@@ -372,13 +378,14 @@
 			this.dgvAddDate.HeaderText = "追加日";
 			this.dgvAddDate.Name = "dgvAddDate";
 			this.dgvAddDate.ReadOnly = true;
+			this.dgvAddDate.Width = 110;
 			// 
 			// Form1
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.SystemColors.Control;
-			this.ClientSize = new System.Drawing.Size(947, 503);
+			this.ClientSize = new System.Drawing.Size(917, 503);
 			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.groupBox2);
 			this.Controls.Add(this.dataGridView);

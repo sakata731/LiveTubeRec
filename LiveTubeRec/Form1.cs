@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Data;
 using System.Drawing;
 using System.Timers;
+using System.Diagnostics;
 
 /*
  * 更新日 2018/04/23
@@ -53,6 +54,7 @@ namespace LiveTubeRec
 
 			//データグリッドビューの初期処理
 			this.replaceDataGridView();
+			this.statusSetToDataGridView();
 
 			//チャンネルマネージャの初期処理
 			_ChannelManager = new ChannelManager(@".\config\config.ini");
@@ -89,6 +91,9 @@ namespace LiveTubeRec
 			{
 				logger.Error("入力したURLが正しくないか、一覧に存在しているため追加できません。");
 			}
+
+			this.replaceDataGridView();
+			this.doMonitaring();
 
 			textBoxChannelID.Text = "";
 		}
@@ -129,6 +134,21 @@ namespace LiveTubeRec
 				buttonInsert_Click(sender, e);
 			}
 		}
+
+		private void dataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+		{
+			DataGridView dgv = (DataGridView)sender;
+			//"Link"列ならば、ボタンがクリックされた
+			if (dgv.Columns[e.ColumnIndex].Name == "dgvLiveURL")
+			{
+				//訪問済みにする
+				DataGridViewLinkCell cell =
+					(DataGridViewLinkCell)dgv[e.ColumnIndex, e.RowIndex];
+				cell.LinkVisited = true;
+				Process.Start(cell.Value.ToString());
+			}
+		}
+
 
 		//リストにチャンネルIDが登録されているかをチェック
 		// 登録済み:true 未登録:false
@@ -173,11 +193,11 @@ namespace LiveTubeRec
 		private void replaceDataGridView()
 		{
 			logger.Trace("start");
-
-			foreach (DataGridViewRow row in dataGridView.Rows)
+			
+			for(int i = 0; i < dataGridView.Rows.Count; i++)
 			{
 				//チャンネルIDからレコードを取得
-				DataRow[] rows = liveTubeDataSet.Tables[0].Select("ChannelID = " + "'" + row.Cells["dgvChannelID"].Value.ToString() + "'");
+				DataRow[] rows = liveTubeDataSet.Tables[0].Select("ChannelID = " + "'" + dataGridView.Rows[i].Cells["dgvChannelID"].Value.ToString() + "'");
 
 				//チャンネルIDは一意
 				if (rows.Length == 1)
@@ -186,7 +206,7 @@ namespace LiveTubeRec
 					object o = rows[0]["thumbnailPath"];
 					if (o != null && !"".Equals(o.ToString()))
 					{
-						row.Cells["dgvThumbnail"].Value = new Bitmap(o.ToString());
+						dataGridView.Rows[i].Cells["dgvThumbnail"].Value = new Bitmap(o.ToString());
 					}
 				}
 				else
@@ -199,6 +219,11 @@ namespace LiveTubeRec
 
 		private void doMonitaring(object sender, ElapsedEventArgs e)
 		{
+			this.doMonitaring();
+		}
+
+		private void doMonitaring()
+		{
 			logger.Trace("start");
 			_ChannelManager.UpdateChanelData(ref channelTable);
 
@@ -206,27 +231,19 @@ namespace LiveTubeRec
 			loggingLiveData();
 
 			//他の方法が思いつかない
-			foreach (DataRow row in channelTable.Rows)
+			for (int i = 0; i < channelTable.Rows.Count; i++)
 			{
-				if ((bool)row["liveStatus"] == true && (bool)row["appStat"] == false)
+				if ((bool)channelTable.Rows[i]["liveStatus"] == true && (bool)channelTable.Rows[i]["appStat"] == false)
 				{
-					ExecuteAplication(row["channelID"].ToString() , row["liveUrl"].ToString());
-					row["appStat"] = true;
+					ExecuteAplication(channelTable.Rows[i]["channelID"].ToString() , channelTable.Rows[i]["liveUrl"].ToString());
+					channelTable.Rows[i]["appStat"] = true;
 				}
 			}
 
+			this.statusSetToDataGridView();
+
 			logger.Debug("\r\nafter");
 			loggingLiveData();
-		}
-
-		private void loggingLiveData()
-		{
-			foreach (DataRow row in channelTable.Rows)
-			{
-				logger.Info("Name          : " + row["channelName"].ToString());
-				logger.Info("LiveStatus    : " + row["liveStatus"].ToString());
-				logger.Info("AppStatus     : " + row["appStat"].ToString());
-			}
 		}
 
 		public void ExecuteAplication(string channelID, string liveUrl)
@@ -243,15 +260,23 @@ namespace LiveTubeRec
 
 			//Processオブジェクトを作成する
 			ProcessExe p = new ProcessExe();
+
 			//起動するファイルを指定する
 			p.StartInfo.FileName = "notepad.exe";
+			
+			//引数
+			p.StartInfo.Arguments = "notepad.exe";
+
 			//イベントハンドラがフォームを作成したスレッドで実行されるようにする
 			p.SynchronizingObject = this;
+
 			//イベントハンドラの追加
 			p.Exited += new EventHandler(p_Exited);
 			p.EventArgs = channelID.ToString();
+			
 			//プロセスが終了したときに Exited イベントを発生させる
 			p.EnableRaisingEvents = true;
+			
 			//起動する
 			p.Start();
 		}
@@ -270,6 +295,38 @@ namespace LiveTubeRec
 					channelTable.Rows[i]["liveStatus"] = false;
 					channelTable.Rows[i]["liveEndTime"] = DateTime.Now;
 				}
+			}
+		}
+
+		private void statusSetToDataGridView()
+		{
+			//datatableをdatagridviewに反映させる
+			for (int i = 0; i < dataGridView.Rows.Count; i++)
+			{
+				for (int j = 0; j < channelTable.Rows.Count; j++)
+				{
+					if (dataGridView.Rows[i].Cells["dgvChannelID"].Value.ToString().Equals(channelTable.Rows[j]["channelID"].ToString()))
+					{
+						if (true.Equals(channelTable.Rows[j]["liveStatus"]))
+						{
+							dataGridView.Rows[i].Cells["dgvStatus"].Value = "配信中";
+						}
+						else
+						{
+							dataGridView.Rows[i].Cells["dgvStatus"].Value = "　-　";
+						}
+					}
+				}
+			}
+		}
+
+		private void loggingLiveData()
+		{
+			foreach (DataRow row in channelTable.Rows)
+			{
+				logger.Info("Name          : " + row["channelName"].ToString());
+				logger.Info("LiveStatus    : " + row["liveStatus"].ToString());
+				logger.Info("AppStatus     : " + row["appStat"].ToString());
 			}
 		}
 	}
