@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
@@ -18,17 +19,47 @@ namespace LiveTubeRec
 
 		private YouTubeDataProvider _youTubeDataProvider;
 		private Schedule _schedule;
+		private DataTable _channelTable;
+		private Process _process;
 
-		public ChannelManager(string iniFilePath)
+		public ChannelManager(DataTable dataTable, Schedule schedule, 
+			YouTubeDataProvider youTubeDataProvider, Process process)
 		{
-			IniFile ini = new IniFile(iniFilePath);
-			this._schedule = new Schedule(iniFilePath);
-			this._youTubeDataProvider = new YouTubeDataProvider(ini["API", "key"]);
+			_channelTable = dataTable;
+			_schedule = schedule;
+			_youTubeDataProvider = youTubeDataProvider;
+			_process = process;
+		}
+
+		//メインロジック
+		public void DoBaseLogic()
+		{
+			logger.Trace("");
+
+			for (int i = 0; i < _channelTable.Rows.Count; i++)
+			{
+				logger.Trace("index : " + i);
+
+				//録画中ならリクエストしない
+				if ((bool)_channelTable.Rows[i]["appStat"] == true)
+				{
+					_channelTable.Rows[i]["liveStatus"] = false;
+					continue;
+				}
+				
+				this.SetLiveStatus(_channelTable.Rows[i], _schedule);
+
+				if ((bool)_channelTable.Rows[i]["liveStatus"] == true)
+				{
+					this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(),_channelTable.Rows[i]["liveID"].ToString());
+					_channelTable.Rows[i]["appStat"] = true;
+				}
+			}
 		}
 
 		public DataRow GetPreparedDataRow(string channelID, DataTable table)
 		{
-			logger.Debug("start");
+			logger.Trace("");
 
 			Dictionary<string, object> dic;
 			dic = this._youTubeDataProvider.RequestChannelData(channelID);
@@ -54,72 +85,72 @@ namespace LiveTubeRec
 			return row;
 		}
 
-		//現時刻がスケージュールされていればテーブルを更新する
-		public void UpdateChanelData(ref DataTable table)
+		//スケジューリングをもとにYouTubeDataProviderをリクエストしてデータrowにセットする
+		public void SetLiveStatus(DataRow row, Schedule schedule)
 		{
-			logger.Debug("checking start");
+			logger.Trace("");
 
-			for (int i = 0; i < table.Rows.Count; i++)
+			if ((bool)row["appStat"] != true)
 			{
-				if ((bool)table.Rows[i]["appStat"] != true)
+				DateTime dt = DateTime.Now;
+
+				int[] scheduleArray = _schedule.scheduleList[dt.Hour];
+				if (0 != scheduleArray.Length
+					&& (-1 == scheduleArray[0] || 0 <= Array.IndexOf(scheduleArray, dt.Minute))) //indexof 引数が要素の中で何番目にあるかを返す
 				{
-					DateTime dt = DateTime.Now;
-					int[] schedule = _schedule.scheduleList[dt.Hour];
-					if (0 != schedule.Length
-						&& (-1 == schedule[0] || 0 <= Array.IndexOf(schedule, dt.Minute))) //indexof 引数が要素の中で何番目にあるかを返す
-					{
-						Dictionary<string, object> dic = this.CheckLiveStatus(table.Rows[i]["channelID"].ToString());
-
-						table.Rows[i]["liveStatus"] = dic["liveStatus"];
-						if ((bool)dic["liveStatus"])
-						{
-							table.Rows[i]["liveID"] = dic["liveID"];
-							table.Rows[i]["liveTitle"] = dic["liveTitle"];
-							table.Rows[i]["liveUrl"] = dic["liveUrl"];
-
-							table.Rows[i]["liveStartTime"] = dic["liveStartTime"];
-						}
-
-						table.Rows[i]["liveLastRequestTime"] = dic["liveLastRequestTime"];
-
-						logger.Debug("row changed");
-					}
+					this.SetLiveStatus(row);
 				}
 			}
 		}
 
-		public void UpdateChanelData(DataRow row)
+		//YouTubeDataProviderをリクエストしてデータrowにセットする
+		public void SetLiveStatus(DataRow row)
 		{
-			Dictionary<string, object> dic = this.CheckLiveStatus(row["channelID"].ToString());
+			logger.Trace("");
 
+			Dictionary<string, object> dic = _youTubeDataProvider.RequestLiveData(row["channelID"].ToString());
+
+			DateTime dt = DateTime.Now;
 			row["liveStatus"] = dic["liveStatus"];
 			if ((bool)dic["liveStatus"])
 			{
 				row["liveID"] = dic["liveID"];
 				row["liveTitle"] = dic["liveTitle"];
 				row["liveUrl"] = dic["liveUrl"];
-				row["liveStartTime"] = dic["liveStartTime"];
+				row["liveStartTime"] = dt;
 			}
 
-			row["liveLastRequestTime"] = dic["liveLastRequestTime"];
+			row["liveLastRequestTime"] = dt;
 		}
 
-
-		private Dictionary<string, object> CheckLiveStatus(string channelID)
+		private void executeAplication(string channelID, string liveUrl)
 		{
-			logger.Debug("start");
+			logger.Trace("start");
 
-			DateTime dt = DateTime.Now;
+			//ProcessStartInfo processInfo = new ProcessStartInfo(@".\youtube-dl.exe");
+			ProcessStartInfo processInfo = new ProcessStartInfo("notepad.exe");
+			processInfo.Arguments = "";
 
-			Dictionary<string, object> dic = _youTubeDataProvider.RequestLiveData(channelID);
-			if ((bool)dic["liveStatus"])
+			_process.StartInfo = processInfo;
+
+			//イベントハンドラの追加
+			_process.Exited += new EventHandler(p_Exited);
+
+			logger.Trace("process start");
+
+			//起動する
+			_process.Start();
+		}
+
+		//プロセスが終了したときに実行される
+		private void p_Exited(object sender, EventArgs e)
+		{
+			logger.Trace("start");
+
+			for(int i = 0; i < _channelTable.Rows.Count; i++)
 			{
-				dic.Add("liveStartTime", dt);
+				if(_channelTable.Rows[i]["live"])
 			}
-
-			dic.Add("liveLastRequestTime", dt);
-
-			return dic;
 		}
 	}
 }

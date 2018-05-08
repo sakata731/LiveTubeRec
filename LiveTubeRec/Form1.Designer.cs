@@ -140,7 +140,6 @@
 			this.dataGridView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
 			this.dataGridView.Size = new System.Drawing.Size(893, 303);
 			this.dataGridView.TabIndex = 2;
-			this.dataGridView.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_CellContentClick);
 			// 
 			// contextMenuStrip
 			// 

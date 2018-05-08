@@ -26,8 +26,10 @@ namespace LiveTubeRec
 			});
 		}
 
-		//チャンネルから生放送の情報を取得します
-		//keylist liveID, liveTitle, liveUrl
+		/// <summary>
+		///チャンネルから生放送の情報を取得します
+		///keylist liveID, liveTitle, liveUrl
+		/// </summary>
 		public Dictionary<string, object> RequestLiveData(string channelID)
 		{
 			//検索条件の設定
