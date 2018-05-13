@@ -14,25 +14,21 @@ using System.IO;
  *
  */
 
-namespace LiveTubeRec
-{
-	public partial class Form1 : Form
-	{
+namespace LiveTubeRec {
+	public partial class Form1 : Form {
 		private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
 		private ChannelManager _ChannelManager;
 
 		private System.Timers.Timer _Timer;
 
-		public Form1()
-		{
+		public Form1() {
 			InitializeComponent();
 		}
 
 		/******************             ここから下はイベントハンドラ              *******************************/
 
-		private void Form1_Load(object sender, EventArgs e)
-		{
+		private void Form1_Load(object sender, EventArgs e) {
 			//設定ファイルからインスタンス設定
 			Config conf = new Config(@".\config\config.ini");
 
@@ -41,18 +37,15 @@ namespace LiveTubeRec
 			DirectoryUtils.SafeCreateDirectory(@".\data");
 			DirectoryUtils.SafeCreateDirectory(@".\data\image");
 
-			if (System.IO.File.Exists(@".\data\data.xml"))
-			{
+			if (System.IO.File.Exists(@".\data\data.xml")) {
 				liveTubeDataSet.ReadXml(@".\data\data.xml");
 				logger.Info("データの読み込みに成功しました。");
 			}
-			else
-			{
+			else {
 				liveTubeDataSet.WriteXml(@".\data\data.xml");
 			}
 
-			for (int i = 0; i < channelTable.Rows.Count; i++)
-			{
+			for (int i = 0; i < channelTable.Rows.Count; i++) {
 				channelTable.Rows[i]["liveStatus"] = false;
 				channelTable.Rows[i]["appStat"] = false;
 			}
@@ -64,54 +57,51 @@ namespace LiveTubeRec
 			//チャンネルマネージャの初期処理
 			IniFile ini = new IniFile(@".\config\config.ini");
 
-			Process process = new Process();
+			logger.Debug("初期設定が完了");
+
+			ProcessExe process = new ProcessExe();
 			process.SynchronizingObject = this;
 			process.EnableRaisingEvents = true;
 
 			_ChannelManager = new ChannelManager(
-				channelTable,new Schedule(@".\config\config.ini"), new YouTubeDataProvider(ini["API","key"]), process);
+				channelTable, new Schedule(@".\config\config.ini"), new YouTubeDataProvider(ini["API", "key"]), process);
 
 			_Timer = new System.Timers.Timer();
 			_Timer.Elapsed += new System.Timers.ElapsedEventHandler(doMonitaring);
 			_Timer.Interval = 30000; //msec
 
 			_Timer.Start();
-		}
+			label1.Text = "[ 状態：記録中 ]";
 
-		private void Form1_FormClosing(object sender, FormClosingEventArgs e)
-		{
+			logger.Info("チャンネルの記録を開始しました。");
+		}
+		private void Form1_FormClosing(object sender, FormClosingEventArgs e) {
 			DirectoryUtils.SafeCreateDirectory(@".\data");
 			liveTubeDataSet.WriteXml(@".\data\data.xml");
 		}
-
-		public void dataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
-		{
+		public void dataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e) {
 			DataGridView dgv = (DataGridView)sender;
 			//"Link"列ならば、ボタンがクリックされた
-			if (dgv.Columns[e.ColumnIndex].Name == "dgvLiveURL")
-			{
+			if (dgv.Columns[e.ColumnIndex].Name == "dgvLiveURL") {
 				//訪問済みにする
-				DataGridViewLinkCell cell =
-					(DataGridViewLinkCell)dgv[e.ColumnIndex, e.RowIndex];
+				DataGridViewLinkCell cell = (DataGridViewLinkCell)dgv[e.ColumnIndex, e.RowIndex];
 				cell.LinkVisited = true;
+
 				Process.Start(cell.Value.ToString());
 			}
 		}
-
-		private void buttonInsert_Click(object sender, EventArgs e)
-		{
+		private void buttonInsert_Click(object sender, EventArgs e) {
 			if ("".Equals(textBoxChannelID.Text)) return;
 
 			string channelID = this.getChannelIDByUrl(textBoxChannelID.Text);
-			if (!"".Equals(channelID) && !hasChannelID(channelID))
-			{
+			if (!"".Equals(channelID) && !hasChannelID(channelID)) {
 				DataRow row = _ChannelManager.GetPreparedDataRow(channelID, channelTable);
 				_ChannelManager.SetLiveStatus(row);
 
 				channelTable.Rows.Add(row);
+				logger.Info("チャンネル： " + row["channelName"].ToString() + " を追加しました。");
 			}
-			else
-			{
+			else {
 				logger.Error("入力したURLが正しくないか、一覧に存在しているため追加できません。");
 			}
 
@@ -120,41 +110,58 @@ namespace LiveTubeRec
 
 			textBoxChannelID.Text = "";
 		}
-
-		private void toolStripMenuItemDelete_Click(object sender, EventArgs e)
-		{
-			if (dataGridView.SelectedRows.Count == 1)
-			{
-				for (int i = 0; i < channelTable.Rows.Count; i++)
-				{
+		private void toolStripMenuItemDelete_Click(object sender, EventArgs e) {
+			if (dataGridView.SelectedRows.Count == 1) {
+				for (int i = 0; i < channelTable.Rows.Count; i++) {
 					var a = channelTable.Rows[i]["channelID"];
 					var b = dataGridView.SelectedRows[0].Cells["dgvChannelID"].Value;
-					if (channelTable.Rows[i]["channelID"].Equals(dataGridView.SelectedRows[0].Cells["dgvChannelID"].Value))
-					{
+					if (channelTable.Rows[i]["channelID"].Equals(dataGridView.SelectedRows[0].Cells["dgvChannelID"].Value)) {
+						string name = channelTable.Rows[i]["channelName"].ToString();
+
 						channelTable.Rows[i].Delete();
+						logger.Info("チャンネル： " + name + " を削除しました");
 					}
 				}
 			}
 		}
-
-		private void contextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e)
-		{
-			if (dataGridView.SelectedRows.Count < 1)
-			{
+		private void contextMenuStrip_Opening(object sender, System.ComponentModel.CancelEventArgs e) {
+			if (dataGridView.SelectedRows.Count < 1) {
 				toolStripMenuItemDelete.Enabled = false;
 			}
-			else
-			{
+			else {
 				toolStripMenuItemDelete.Enabled = true;
 			}
 		}
-
-		private void textBoxChannelID_KeyPress(object sender, KeyPressEventArgs e)
-		{
-			if (e.KeyChar == (char)Keys.Enter)
-			{
+		private void textBoxChannelID_KeyPress(object sender, KeyPressEventArgs e) {
+			if (e.KeyChar == (char)Keys.Enter) {
 				e.Handled = true;
 				buttonInsert_Click(sender, e);
+			}
+		}
+		private void button1_Click(object sender, EventArgs e) {
+			_Timer.Start();
+			label1.Text = "[ 状態：記録中 ]";
+			logger.Info("チャンネルの記録を開始しました。");
+		}
+		private void button3_Click(object sender, EventArgs e) {
+			_Timer.Stop();
+			label1.Text = "[ 状態：停止中 ]";
+			logger.Info("チャンネルの記録を停止しました。");
+		}
+		private void button2_Click(object sender, EventArgs e) {
+			this.doMonitaring();
+		}
+		private void textBox_Log_TextChanged(object sender, EventArgs e) {
+			//カレット位置を末尾に移動
+			textBox_Log.SelectionStart = textBox_Log.Text.Length;
+			//カレット位置までスクロール
+			textBox_Log.ScrollToCaret();
+		}
+
+		private void dataGridView_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e) {
+			// ヘッダ以外のセルか？
+			if (e.ColumnIndex >= 0 && e.RowIndex >= 0) {
+				dataGridView.CurrentCell = dataGridView[e.ColumnIndex, e.RowIndex];
 			}
 		}
 
@@ -162,16 +169,13 @@ namespace LiveTubeRec
 
 		//リストにチャンネルIDが登録されているかをチェック
 		// 登録済み:true 未登録:false
-		private bool hasChannelID(string inputCannelID)
-		{
+		private bool hasChannelID(string inputCannelID) {
 			logger.Debug("start");
 
 			bool rtn = false;
-			foreach (DataGridViewRow row in dataGridView.Rows)
-			{
+			foreach (DataGridViewRow row in dataGridView.Rows) {
 				// 編集中の行どうしでないとき
-				if (row.Cells["dgvChannelID"].Value != null && row.Cells["dgvChannelID"].Value.Equals(inputCannelID))
-				{
+				if (row.Cells["dgvChannelID"].Value != null && row.Cells["dgvChannelID"].Value.Equals(inputCannelID)) {
 					rtn = true;
 				}
 			}
@@ -180,8 +184,7 @@ namespace LiveTubeRec
 		}
 
 		//URLからチェンネルIDを取得 取得できなければ空文字を返す
-		private string getChannelIDByUrl(string inputURL)
-		{
+		private string getChannelIDByUrl(string inputURL) {
 			logger.Debug("Start");
 
 			string expression = "(?<type>channel)/(?<id>.*?)(&|$|/)";
@@ -189,75 +192,58 @@ namespace LiveTubeRec
 			Regex reg = new Regex(expression);
 			Match match = reg.Match(inputURL);
 			bool rtn = match.Success;
-			if (rtn == true)
-			{
+			if (rtn == true) {
 				return match.Groups["id"].Value;
 			}
-			else
-			{
+			else {
 				return "";
 			}
 		}
 
 		//datagridviewの列ごとの処理を記述
-		private void replaceDataGridView()
-		{
-			logger.Trace("start");
+		private void replaceDataGridView() {
+			logger.Trace("");
 
-			for (int i = 0; i < dataGridView.Rows.Count; i++)
-			{
+			for (int i = 0; i < dataGridView.Rows.Count; i++) {
 				//チャンネルIDからレコードを取得
 				DataRow[] rows = liveTubeDataSet.Tables[0].Select("ChannelID = " + "'" + dataGridView.Rows[i].Cells["dgvChannelID"].Value.ToString() + "'");
 
 				//チャンネルIDは一意
-				if (rows.Length == 1)
-				{
+				if (rows.Length == 1) {
 					//サムネイルをセット
 					object o = rows[0]["thumbnailPath"];
-					if (o != null && !"".Equals(o.ToString()))
-					{
+					if (o != null && !"".Equals(o.ToString())) {
 						dataGridView.Rows[i].Cells["dgvThumbnail"].Value = new Bitmap(o.ToString());
 					}
 				}
-				else
-				{
+				else {
 					logger.Error("チャンネルデータに誤りがあります。");
 					break;
 				}
 			}
 		}
 
-		private void doMonitaring(object sender, ElapsedEventArgs e)
-		{
+		private void doMonitaring(object sender, ElapsedEventArgs e) {
 			this.doMonitaring();
 		}
 
-		private void doMonitaring()
-		{
-			logger.Trace("start");
+		private void doMonitaring() {
 			_ChannelManager.DoBaseLogic();
 
 			this.statusSetToDataGridView();
 
-			logger.Debug("\r\nafter");
 			loggingLiveData();
 		}
 
-		private void statusSetToDataGridView()
-		{
+		private void statusSetToDataGridView() {
 			//datatableをdatagridviewに反映させる
-			for (int i = 0; i < dataGridView.Rows.Count; i++)
-			{
-				for (int j = 0; j < channelTable.Rows.Count; j++)
-				{
-					if (dataGridView.Rows[i].Cells["dgvChannelID"].Value.ToString().Equals(channelTable.Rows[j]["channelID"].ToString()))
-					{
-						if (true.Equals(channelTable.Rows[j]["liveStatus"]))
-						{
+			for (int i = 0; i < dataGridView.Rows.Count; i++) {
+				for (int j = 0; j < channelTable.Rows.Count; j++) {
+					if (dataGridView.Rows[i].Cells["dgvChannelID"].Value.ToString().Equals(channelTable.Rows[j]["channelID"].ToString())) {
+						if (true.Equals(channelTable.Rows[j]["liveStatus"])) {
 							dataGridView.Rows[i].Cells["dgvStatus"].Value = "配信中";
 						}
-						else
-						{
+						else {
 							dataGridView.Rows[i].Cells["dgvStatus"].Value = "　-　";
 						}
 					}
@@ -265,14 +251,10 @@ namespace LiveTubeRec
 			}
 		}
 
-
-		private void loggingLiveData()
-		{
-			foreach (DataRow row in channelTable.Rows)
-			{
-				logger.Info("Name          : " + row["channelName"].ToString());
-				logger.Info("LiveStatus    : " + row["liveStatus"].ToString());
-				logger.Info("AppStatus     : " + row["appStat"].ToString());
+		private void loggingLiveData() {
+			foreach (DataRow row in channelTable.Rows) {
+				logger.Debug("Name          : " + row["channelName"].ToString());
+				logger.Debug("LiveStatus    : " + row["liveStatus"].ToString());
 			}
 		}
 	}

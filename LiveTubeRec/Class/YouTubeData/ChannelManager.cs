@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -11,20 +12,17 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace LiveTubeRec
-{
-	public class ChannelManager
-	{
+namespace LiveTubeRec {
+	public class ChannelManager {
 		private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
 		private YouTubeDataProvider _youTubeDataProvider;
 		private Schedule _schedule;
 		private DataTable _channelTable;
-		private Process _process;
+		private ProcessExe _process;
 
-		public ChannelManager(DataTable dataTable, Schedule schedule, 
-			YouTubeDataProvider youTubeDataProvider, Process process)
-		{
+		public ChannelManager(DataTable dataTable, Schedule schedule,
+			YouTubeDataProvider youTubeDataProvider, ProcessExe process) {
 			_channelTable = dataTable;
 			_schedule = schedule;
 			_youTubeDataProvider = youTubeDataProvider;
@@ -32,33 +30,37 @@ namespace LiveTubeRec
 		}
 
 		//メインロジック
-		public void DoBaseLogic()
-		{
+		public void DoBaseLogic() {
 			logger.Trace("");
 
-			for (int i = 0; i < _channelTable.Rows.Count; i++)
-			{
-				logger.Trace("index : " + i);
-
+			for (int i = 0; i < _channelTable.Rows.Count; i++) {
 				//録画中ならリクエストしない
-				if ((bool)_channelTable.Rows[i]["appStat"] == true)
-				{
-					_channelTable.Rows[i]["liveStatus"] = false;
+				if ((bool)_channelTable.Rows[i]["appStat"] == true) {
+					logger.Info("チャンネル " + _channelTable.Rows[i]["channelName"].ToString() + " は外部アプリが実行中のため記録を終了します。");
 					continue;
 				}
-				
-				this.SetLiveStatus(_channelTable.Rows[i], _schedule);
 
-				if ((bool)_channelTable.Rows[i]["liveStatus"] == true)
-				{
-					this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(),_channelTable.Rows[i]["liveID"].ToString());
+				DateTime dt = DateTime.Now;
+
+				int[] scheduleArray = _schedule.scheduleList[dt.Hour];
+
+				if(0 == scheduleArray.Length && 0 > Array.IndexOf(scheduleArray, dt.Minute)) {
+					logger.Info("チャンネル " + _channelTable.Rows[i]["channelName"].ToString() + " はスケジュールされていないので記録を終了します。");
+					continue;
+				}
+
+				if (-1 == scheduleArray[0] || 0 <= Array.IndexOf(scheduleArray, dt.Minute)) { //indexof 引数が要素の中で何番目にあるかを返す
+					this.SetLiveStatus(_channelTable.Rows[i]);
+				}
+
+				if ((bool)_channelTable.Rows[i]["liveStatus"] == true) {
+					this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(), _channelTable.Rows[i]["liveID"].ToString());
 					_channelTable.Rows[i]["appStat"] = true;
 				}
 			}
 		}
 
-		public DataRow GetPreparedDataRow(string channelID, DataTable table)
-		{
+		public DataRow GetPreparedDataRow(string channelID, DataTable table) {
 			logger.Trace("");
 
 			Dictionary<string, object> dic;
@@ -76,8 +78,7 @@ namespace LiveTubeRec
 			row["thumbnailUrl"] = url;
 			row["thumbnailPath"] = path;
 
-			if (!System.IO.File.Exists(path))
-			{
+			if (!System.IO.File.Exists(path)) {
 				Bitmap bmp = new Bitmap(Utils.loadImageFromURL(url));
 				bmp.Save(@".\data\image\" + channelID + ".png", System.Drawing.Imaging.ImageFormat.Png);
 			}
@@ -86,70 +87,74 @@ namespace LiveTubeRec
 		}
 
 		//スケジューリングをもとにYouTubeDataProviderをリクエストしてデータrowにセットする
-		public void SetLiveStatus(DataRow row, Schedule schedule)
-		{
-			logger.Trace("");
+		//public void SetLiveStatus(DataRow row, Schedule schedule) {
+		//	DateTime dt = DateTime.Now;
 
-			if ((bool)row["appStat"] != true)
-			{
-				DateTime dt = DateTime.Now;
-
-				int[] scheduleArray = _schedule.scheduleList[dt.Hour];
-				if (0 != scheduleArray.Length
-					&& (-1 == scheduleArray[0] || 0 <= Array.IndexOf(scheduleArray, dt.Minute))) //indexof 引数が要素の中で何番目にあるかを返す
-				{
-					this.SetLiveStatus(row);
-				}
-			}
-		}
+		//	int[] scheduleArray = _schedule.scheduleList[dt.Hour];
+		//	if (0 != scheduleArray.Length
+		//		&& (-1 == scheduleArray[0] || 0 <= Array.IndexOf(scheduleArray, dt.Minute))) { //indexof 引数が要素の中で何番目にあるかを返す
+		//		this.SetLiveStatus(row);
+		//	}
+		//	else {
+		//		logger.Info("チャンネル " + row["channelName"].ToString() + " はスケジュールされていないので記録を終了します。");
+		//	}
+		//}
 
 		//YouTubeDataProviderをリクエストしてデータrowにセットする
-		public void SetLiveStatus(DataRow row)
-		{
-			logger.Trace("");
+		public void SetLiveStatus(DataRow row) {
+			logger.Info("チャンネル " + row["channelName"].ToString() + " の記録を開始します。");
 
 			Dictionary<string, object> dic = _youTubeDataProvider.RequestLiveData(row["channelID"].ToString());
 
 			DateTime dt = DateTime.Now;
 			row["liveStatus"] = dic["liveStatus"];
-			if ((bool)dic["liveStatus"])
-			{
+			if ((bool)dic["liveStatus"]) {
 				row["liveID"] = dic["liveID"];
 				row["liveTitle"] = dic["liveTitle"];
 				row["liveUrl"] = dic["liveUrl"];
 				row["liveStartTime"] = dt;
+
+				logger.Info("チャンネル " + row["channelName"].ToString() + " 配信中です。");
+			}
+			else {
+				logger.Info("チャンネル " + row["channelName"].ToString() + " の配信はありません。");
 			}
 
 			row["liveLastRequestTime"] = dt;
+
+			logger.Info("チャンネル " + row["channelName"].ToString() + " の記録を終了します。");
 		}
 
-		private void executeAplication(string channelID, string liveUrl)
-		{
-			logger.Trace("start");
-
-			//ProcessStartInfo processInfo = new ProcessStartInfo(@".\youtube-dl.exe");
-			ProcessStartInfo processInfo = new ProcessStartInfo("notepad.exe");
-			processInfo.Arguments = "";
+		private void executeAplication(string channelID, string liveUrl) {
+			
+			ProcessStartInfo processInfo = new ProcessStartInfo(@"youtube-dl.exe");
+			processInfo.WorkingDirectory = Directory.GetCurrentDirectory() + "\\youtube-dl";
+			processInfo.Arguments = "\"" + liveUrl + "\"" + " -q" ;
 
 			_process.StartInfo = processInfo;
+
+			_process.ChannelID = channelID;
 
 			//イベントハンドラの追加
 			_process.Exited += new EventHandler(p_Exited);
 
-			logger.Trace("process start");
-
 			//起動する
 			_process.Start();
+			logger.Info("youtube-dl.exe を起動します。");
 		}
 
 		//プロセスが終了したときに実行される
-		private void p_Exited(object sender, EventArgs e)
-		{
-			logger.Trace("start");
+		private void p_Exited(object sender, EventArgs e) {
+			logger.Trace("");
 
-			for(int i = 0; i < _channelTable.Rows.Count; i++)
-			{
-				if(_channelTable.Rows[i]["live"])
+			string channelID = ((ProcessExe)sender).ChannelID;
+
+			for (int i = 0; i < _channelTable.Rows.Count; i++) {
+				if (channelID.Equals(_channelTable.Rows[i]["channelID"].ToString())) {
+					_channelTable.Rows[i]["appStat"] = false;
+					_channelTable.Rows[i]["liveEndTime"] = DateTime.Now;
+					break;
+				}
 			}
 		}
 	}

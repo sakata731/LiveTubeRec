@@ -54,9 +54,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LiveTubeRec\LiveTubeRec.csproj">
+    <ProjectReference Include="..\LiveTubeRec\LiveTubeReport.csproj">
       <Project>{14659ab2-8afb-46e8-b5d2-9aae9247e580}</Project>
-      <Name>LiveTubeRec</Name>
+      <Name>LiveTubeReport</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
