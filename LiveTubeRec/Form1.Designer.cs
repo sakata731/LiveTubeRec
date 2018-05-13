@@ -1,4 +1,4 @@
-﻿namespace LiveTubeRec
+﻿namespace LiveTubeReport
 {
     partial class Form1
     {
@@ -301,7 +301,7 @@
 			// 
 			// button3
 			// 
-			this.button3.Image = global::LiveTubeRec.Properties.Resources.stop;
+			this.button3.Image = global::LiveTubeReport.Properties.Resources.stop;
 			this.button3.Location = new System.Drawing.Point(60, 16);
 			this.button3.Name = "button3";
 			this.button3.Size = new System.Drawing.Size(25, 25);
@@ -311,7 +311,7 @@
 			// 
 			// button1
 			// 
-			this.button1.Image = global::LiveTubeRec.Properties.Resources.play;
+			this.button1.Image = global::LiveTubeReport.Properties.Resources.play;
 			this.button1.Location = new System.Drawing.Point(17, 16);
 			this.button1.Name = "button1";
 			this.button1.Size = new System.Drawing.Size(25, 25);
@@ -321,7 +321,7 @@
 			// 
 			// button2
 			// 
-			this.button2.Image = global::LiveTubeRec.Properties.Resources.repeat;
+			this.button2.Image = global::LiveTubeReport.Properties.Resources.repeat;
 			this.button2.Location = new System.Drawing.Point(103, 16);
 			this.button2.Name = "button2";
 			this.button2.Size = new System.Drawing.Size(25, 25);

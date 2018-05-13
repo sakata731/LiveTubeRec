@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LiveTubeRec
+namespace LiveTubeReport
 {
 	/// <summary>
 	/// Directory クラスに関する汎用関数を管理するクラス

@@ -11,7 +11,7 @@ using System.Text.RegularExpressions;
 using System.Data;
 
 
-namespace LiveTubeRec
+namespace LiveTubeReport
 {
 	//YouTubeAPIでデータを取得し、LiveDataで返却するクラス
 	public class YouTubeDataProvider

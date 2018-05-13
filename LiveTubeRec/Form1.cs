@@ -14,7 +14,7 @@ using System.IO;
  *
  */
 
-namespace LiveTubeRec {
+namespace LiveTubeReport {
 	public partial class Form1 : Form {
 		private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 

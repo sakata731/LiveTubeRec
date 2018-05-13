@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace LiveTubeRec
+namespace LiveTubeReport
 {
 	/// <summary>
 	/// チャンネルの情報を保持するクラス

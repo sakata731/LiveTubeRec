@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LiveTubeRec
+namespace LiveTubeReport
 {
 	/// <summary>
 	/// INIファイルを読み書きするクラス

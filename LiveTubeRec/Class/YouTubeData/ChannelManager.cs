@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
 
-namespace LiveTubeRec {
+namespace LiveTubeReport {
 	public class ChannelManager {
 		private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -44,19 +44,18 @@ namespace LiveTubeRec {
 
 				int[] scheduleArray = _schedule.scheduleList[dt.Hour];
 
-				if(0 == scheduleArray.Length && 0 > Array.IndexOf(scheduleArray, dt.Minute)) {
+				if(0 == scheduleArray.Length || 0 > Array.IndexOf(scheduleArray, dt.Minute)) {//indexof 引数が要素の中で何番目にあるかを返す
 					logger.Info("チャンネル " + _channelTable.Rows[i]["channelName"].ToString() + " はスケジュールされていないので記録を終了します。");
 					continue;
 				}
 
-				if (-1 == scheduleArray[0] || 0 <= Array.IndexOf(scheduleArray, dt.Minute)) { //indexof 引数が要素の中で何番目にあるかを返す
-					this.SetLiveStatus(_channelTable.Rows[i]);
+				this.SetLiveStatus(_channelTable.Rows[i]);
 
-					if ((bool)_channelTable.Rows[i]["liveStatus"] == true) {
-						this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(), _channelTable.Rows[i]["liveID"].ToString());
-						_channelTable.Rows[i]["appStat"] = true;
-					}
+				if ((bool)_channelTable.Rows[i]["liveStatus"] == true) {
+					this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(), _channelTable.Rows[i]["liveID"].ToString());
+					_channelTable.Rows[i]["appStat"] = true;
 				}
+				
 			}
 		}
 
