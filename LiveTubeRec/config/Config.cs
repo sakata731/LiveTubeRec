@@ -8,8 +8,9 @@ namespace LiveTubeRec
 {
 	class Config
 	{
-		public String ApiKey { get; set; }
-		public String YTDLPath { get; set; }
+		public string ApiKey { get; set; }
+		public string YTDLPath { get; set; }
+		public int ChannelNumMax { get; set; }
 		public Config(string iniPath)
 		{
 			//ファイルを指定して初期化
@@ -17,6 +18,7 @@ namespace LiveTubeRec
 
 			this.ApiKey = ini["API", "key"];
 			this.YTDLPath = ini["YouTubeDL", "path"];
+			this.ChannelNumMax = int.Parse( ini["Channel", "max"]);
 		}
 	}
 }

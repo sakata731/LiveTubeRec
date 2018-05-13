@@ -19,8 +19,8 @@ namespace LiveTubeRec {
 		private static NLog.Logger logger = LogManager.GetCurrentClassLogger();
 
 		private ChannelManager _ChannelManager;
-
 		private System.Timers.Timer _Timer;
+		private Config conf;
 
 		public Form1() {
 			InitializeComponent();
@@ -30,7 +30,7 @@ namespace LiveTubeRec {
 
 		private void Form1_Load(object sender, EventArgs e) {
 			//設定ファイルからインスタンス設定
-			Config conf = new Config(@".\config\config.ini");
+			conf = new Config(@".\config\config.ini");
 
 			//データセットの初期化
 			liveTubeDataSet.Clear();
@@ -55,7 +55,7 @@ namespace LiveTubeRec {
 			this.statusSetToDataGridView();
 
 			//チャンネルマネージャの初期処理
-			IniFile ini = new IniFile(@".\config\config.ini");
+			//IniFile ini = new IniFile(@".\config\config.ini");
 
 			logger.Debug("初期設定が完了");
 
@@ -64,7 +64,7 @@ namespace LiveTubeRec {
 			process.EnableRaisingEvents = true;
 
 			_ChannelManager = new ChannelManager(
-				channelTable, new Schedule(@".\config\config.ini"), new YouTubeDataProvider(ini["API", "key"]), process);
+				channelTable, new Schedule(@".\config\config.ini"), new YouTubeDataProvider(conf.ApiKey), process);
 
 			_Timer = new System.Timers.Timer();
 			_Timer.Elapsed += new System.Timers.ElapsedEventHandler(doMonitaring);
@@ -91,22 +91,33 @@ namespace LiveTubeRec {
 			}
 		}
 		private void buttonInsert_Click(object sender, EventArgs e) {
-			if ("".Equals(textBoxChannelID.Text)) return;
-
+			if ("".Equals(textBoxChannelID.Text)) {
+				return;
+			}
+			
 			string channelID = this.getChannelIDByUrl(textBoxChannelID.Text);
-			if (!"".Equals(channelID) && !hasChannelID(channelID)) {
-				DataRow row = _ChannelManager.GetPreparedDataRow(channelID, channelTable);
-				_ChannelManager.SetLiveStatus(row);
-
-				channelTable.Rows.Add(row);
-				logger.Info("チャンネル： " + row["channelName"].ToString() + " を追加しました。");
-			}
-			else {
+			if ("".Equals(channelID) || this.hasChannelID(channelID)) {
 				logger.Error("入力したURLが正しくないか、一覧に存在しているため追加できません。");
+				textBoxChannelID.Text = "";
+				return;
 			}
+
+			if(dataGridView.Rows.Count >= conf.ChannelNumMax || channelTable.Rows.Count >= conf.ChannelNumMax) {
+				logger.Error("記録可能なチャンネル数が上限に達しているため追加できません。");
+				textBoxChannelID.Text = "";
+				return;
+			}
+
+			DataRow row = _ChannelManager.GetPreparedDataRow(channelID, channelTable);
+
+			logger.Info("チャンネル " + row["channelName"].ToString() + " を追加しました。");
+
+			_ChannelManager.SetLiveStatusAndExecApp(row);
+
+			channelTable.Rows.Add(row);
 
 			this.replaceDataGridView();
-			this.doMonitaring();
+			//this.doMonitaring();
 
 			textBoxChannelID.Text = "";
 		}

@@ -51,11 +51,11 @@ namespace LiveTubeRec {
 
 				if (-1 == scheduleArray[0] || 0 <= Array.IndexOf(scheduleArray, dt.Minute)) { //indexof 引数が要素の中で何番目にあるかを返す
 					this.SetLiveStatus(_channelTable.Rows[i]);
-				}
 
-				if ((bool)_channelTable.Rows[i]["liveStatus"] == true) {
-					this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(), _channelTable.Rows[i]["liveID"].ToString());
-					_channelTable.Rows[i]["appStat"] = true;
+					if ((bool)_channelTable.Rows[i]["liveStatus"] == true) {
+						this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(), _channelTable.Rows[i]["liveID"].ToString());
+						_channelTable.Rows[i]["appStat"] = true;
+					}
 				}
 			}
 		}
@@ -101,6 +101,16 @@ namespace LiveTubeRec {
 		//}
 
 		//YouTubeDataProviderをリクエストしてデータrowにセットする
+
+		//datarowにチャンネル情報を設定し、ライブ情報から外部アプリを実行する
+		public void SetLiveStatusAndExecApp(DataRow row) {
+			this.SetLiveStatus(row);
+
+			if ((bool)row["liveStatus"] == true) {
+				this.executeAplication(row["channelID"].ToString(), row["liveID"].ToString());
+				row["appStat"] = true;
+			}
+		}
 		public void SetLiveStatus(DataRow row) {
 			logger.Info("チャンネル " + row["channelName"].ToString() + " の記録を開始します。");
 
@@ -129,7 +139,7 @@ namespace LiveTubeRec {
 			
 			ProcessStartInfo processInfo = new ProcessStartInfo(@"youtube-dl.exe");
 			processInfo.WorkingDirectory = Directory.GetCurrentDirectory() + "\\youtube-dl";
-			processInfo.Arguments = "\"" + liveUrl + "\"" + " -q" ;
+			processInfo.Arguments = "\"" + liveUrl + "\"";
 
 			_process.StartInfo = processInfo;
 
