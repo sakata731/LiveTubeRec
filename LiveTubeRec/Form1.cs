@@ -68,7 +68,7 @@ namespace LiveTubeReport {
 
 			_Timer = new System.Timers.Timer();
 			_Timer.Elapsed += new System.Timers.ElapsedEventHandler(doMonitaring);
-			_Timer.Interval = 30000; //msec
+			_Timer.Interval = 60000; //msec
 
 			_Timer.Start();
 			label1.Text = "[ 状態：記録中 ]";
