@@ -174,7 +174,7 @@ namespace LiveTubeReport {
 			_process.Exited += new EventHandler(p_Exited);
 
 			//起動する
-			//_process.Start();
+			_process.Start();
 			logger.Info("youtube-dl.exe を起動します。");
 		}
 

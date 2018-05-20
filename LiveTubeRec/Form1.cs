@@ -168,6 +168,8 @@ namespace LiveTubeReport {
 
 			await Task.Run(() => _ChannelManager.ForceDoLogic());
 
+			this.statusSetToDataGridView();
+
 			Application.DoEvents();
 			button2.Enabled = true;
 
