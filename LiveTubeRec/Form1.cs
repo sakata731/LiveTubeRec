@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Timers;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 
 /*
  * 更新日 2018/04/23
@@ -159,8 +160,17 @@ namespace LiveTubeReport {
 			label1.Text = "[ 状態：停止中 ]";
 			logger.Info("チャンネルの記録を停止しました。");
 		}
-		private void button2_Click(object sender, EventArgs e) {
-			this.doMonitaring();
+
+		//更新ボタン
+		private async void button2_Click(object sender, EventArgs e) {
+
+			button2.Enabled = false;
+
+			await Task.Run(() => _ChannelManager.ForceDoLogic());
+
+			Application.DoEvents();
+			button2.Enabled = true;
+
 		}
 		private void textBox_Log_TextChanged(object sender, EventArgs e) {
 			//カレット位置を末尾に移動
@@ -238,14 +248,14 @@ namespace LiveTubeReport {
 			this.doMonitaring();
 		}
 
-		private void doMonitaring() {
-			_ChannelManager.DoBaseLogic();
-
+		private async Task doMonitaring() {
+			await Task.Run(() => _ChannelManager.DoBaseLogic());
+			
 			this.statusSetToDataGridView();
 
 			loggingLiveData();
 		}
-
+		//datatableのデータをdatagridviewに反映させる
 		private void statusSetToDataGridView() {
 			//datatableをdatagridviewに反映させる
 			for (int i = 0; i < dataGridView.Rows.Count; i++) {

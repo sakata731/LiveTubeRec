@@ -49,13 +49,39 @@ namespace LiveTubeReport {
 					continue;
 				}
 
+				//書き方あってる？
+				//await Task.Run(() => {
+				//	this.SetLiveStatus(_channelTable.Rows[i]);
+				//});
+
 				this.SetLiveStatus(_channelTable.Rows[i]);
 
 				if ((bool)_channelTable.Rows[i]["liveStatus"] == true) {
 					this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(), _channelTable.Rows[i]["liveID"].ToString());
 					_channelTable.Rows[i]["appStat"] = true;
 				}
+			}
+		}
+
+		public void ForceDoLogic() {
+			logger.Trace("");
+			
+			for (int i = 0; i < _channelTable.Rows.Count; i++) {
 				
+					this.SetLiveStatus(_channelTable.Rows[i]);
+			
+
+
+				//録画中なら外部アプリを起動しない
+				if ((bool)_channelTable.Rows[i]["appStat"] == true) {
+					logger.Info("チャンネル " + _channelTable.Rows[i]["channelName"].ToString() + " は外部アプリが実行中のため記録を終了します。");
+					continue;
+				}
+
+				if ((bool)_channelTable.Rows[i]["liveStatus"] == true) {
+					this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(), _channelTable.Rows[i]["liveID"].ToString());
+					_channelTable.Rows[i]["appStat"] = true;
+				}
 			}
 		}
 
@@ -148,7 +174,7 @@ namespace LiveTubeReport {
 			_process.Exited += new EventHandler(p_Exited);
 
 			//起動する
-			_process.Start();
+			//_process.Start();
 			logger.Info("youtube-dl.exe を起動します。");
 		}
 
