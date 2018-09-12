@@ -52,8 +52,8 @@ namespace LiveTubeReport {
 			}
 
 			//データグリッドビューの初期処理
-			this.replaceDataGridView();
-			this.statusSetToDataGridView();
+			replaceDataGridView();
+			statusSetToDataGridView();
 
 			//チャンネルマネージャの初期処理
 			//IniFile ini = new IniFile(@".\config\config.ini");
@@ -175,16 +175,18 @@ namespace LiveTubeReport {
 
 		}
 		private void textBox_Log_TextChanged(object sender, EventArgs e) {
-			//カレット位置を末尾に移動
-			textBox_Log.SelectionStart = textBox_Log.Text.Length;
-			//カレット位置までスクロール
-			textBox_Log.ScrollToCaret();
+			if(textBox_Log.Lines.Length > 1000) {
+				textBox_Log.Text = "";
+			}
 		}
 
 		private void dataGridView_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e) {
 			// ヘッダ以外のセルか？
 			if (e.ColumnIndex >= 0 && e.RowIndex >= 0) {
 				dataGridView.CurrentCell = dataGridView[e.ColumnIndex, e.RowIndex];
+			}
+			else {
+				dataGridView.CurrentCell = null;
 			}
 		}
 
@@ -247,13 +249,13 @@ namespace LiveTubeReport {
 		}
 
 		private void doMonitaring(object sender, ElapsedEventArgs e) {
-			this.doMonitaring();
+			doMonitaring();
 		}
 
 		private async Task doMonitaring() {
 			await Task.Run(() => _ChannelManager.DoBaseLogic());
 			
-			this.statusSetToDataGridView();
+			statusSetToDataGridView();
 
 			loggingLiveData();
 		}

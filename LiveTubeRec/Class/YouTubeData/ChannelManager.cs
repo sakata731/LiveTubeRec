@@ -11,6 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Timers;
+using System.Windows.Forms;
 
 namespace LiveTubeReport {
 	public class ChannelManager {
@@ -68,17 +69,23 @@ namespace LiveTubeReport {
 			
 			for (int i = 0; i < _channelTable.Rows.Count; i++) {
 				
-					this.SetLiveStatus(_channelTable.Rows[i]);
+				this.SetLiveStatus(_channelTable.Rows[i]);
 			
-
-
-				//録画中なら外部アプリを起動しない
-				if ((bool)_channelTable.Rows[i]["appStat"] == true) {
-					logger.Info("チャンネル " + _channelTable.Rows[i]["channelName"].ToString() + " は外部アプリが実行中のため記録を終了します。");
-					continue;
-				}
-
 				if ((bool)_channelTable.Rows[i]["liveStatus"] == true) {
+					string channelName = _channelTable.Rows[i]["channelName"].ToString();
+
+					DialogResult result = new DialogResult();
+					if ((bool)_channelTable.Rows[i]["appStat"] == true) {
+						 result = MessageBox.Show("チャンネル " + channelName + "\r\n" + "外部アプリが起動しています。\r\n" + "外部アプリを起動しますか？", "外部アプリを起動しますか？"
+								, MessageBoxButtons.YesNoCancel
+								, MessageBoxIcon.Question
+								, MessageBoxDefaultButton.Button2);
+
+						if(result != DialogResult.Yes) {
+							continue;
+						}
+					}
+
 					this.executeAplication(_channelTable.Rows[i]["channelID"].ToString(), _channelTable.Rows[i]["liveID"].ToString());
 					_channelTable.Rows[i]["appStat"] = true;
 				}
@@ -111,22 +118,6 @@ namespace LiveTubeReport {
 			return row;
 		}
 
-		//スケジューリングをもとにYouTubeDataProviderをリクエストしてデータrowにセットする
-		//public void SetLiveStatus(DataRow row, Schedule schedule) {
-		//	DateTime dt = DateTime.Now;
-
-		//	int[] scheduleArray = _schedule.scheduleList[dt.Hour];
-		//	if (0 != scheduleArray.Length
-		//		&& (-1 == scheduleArray[0] || 0 <= Array.IndexOf(scheduleArray, dt.Minute))) { //indexof 引数が要素の中で何番目にあるかを返す
-		//		this.SetLiveStatus(row);
-		//	}
-		//	else {
-		//		logger.Info("チャンネル " + row["channelName"].ToString() + " はスケジュールされていないので記録を終了します。");
-		//	}
-		//}
-
-		//YouTubeDataProviderをリクエストしてデータrowにセットする
-
 		//datarowにチャンネル情報を設定し、ライブ情報から外部アプリを実行する
 		public void SetLiveStatusAndExecApp(DataRow row) {
 			this.SetLiveStatus(row);
@@ -137,7 +128,7 @@ namespace LiveTubeReport {
 			}
 		}
 		public void SetLiveStatus(DataRow row) {
-			logger.Info("チャンネル " + row["channelName"].ToString() + " の記録を開始します。");
+			logger.Debug("チャンネル " + row["channelName"].ToString() + " の記録を開始します。");
 
 			Dictionary<string, object> dic = _youTubeDataProvider.RequestLiveData(row["channelID"].ToString());
 
@@ -157,7 +148,7 @@ namespace LiveTubeReport {
 
 			row["liveLastRequestTime"] = dt;
 
-			logger.Info("チャンネル " + row["channelName"].ToString() + " の記録を終了します。");
+			logger.Debug("チャンネル " + row["channelName"].ToString() + " の記録を終了します。");
 		}
 
 		private void executeAplication(string channelID, string liveUrl) {
